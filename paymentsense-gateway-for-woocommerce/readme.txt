@@ -3,7 +3,7 @@
 Tags: paymentsense, payments
 Requires at least: 4.4
 Tested up to: 4.9.4
-Stable tag: 3.0.2
+Stable tag: 3.0.3
 Requires PHP: 5.6.0
 
 License: GPLv3

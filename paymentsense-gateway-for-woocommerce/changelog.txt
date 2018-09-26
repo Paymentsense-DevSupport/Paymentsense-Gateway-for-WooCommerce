@@ -1,5 +1,9 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.2
+Paymentsense Gateway for WooCommerce 3.0.3
+
+## [3.0.3] - 2018-03-21
+### Fixed
+- Fix broken image paths
 
 ## [3.0.2] - 2018-03-21
 ### Added
