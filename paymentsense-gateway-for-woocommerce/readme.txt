@@ -1,10 +1,9 @@
-
 === WooCommerce Paymentsense Gateway ===
 
 Tags: paymentsense, payments
 Requires at least: 4.4
 Tested up to: 4.9.4
-Stable tag: 3.0.1
+Stable tag: 3.0.2
 Requires PHP: 5.6.0
 
 License: GPLv3

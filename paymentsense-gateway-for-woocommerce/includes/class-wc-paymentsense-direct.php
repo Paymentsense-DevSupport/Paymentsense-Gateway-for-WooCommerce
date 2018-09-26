@@ -205,21 +205,26 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 		 * @return bool
 		 */
 		public function validate_fields() {
-			$result               = true;
-			$required_card_fields = array(
-				'psense_ccname',
-				'psense_ccnum',
-				'psense_cv2',
-				'psense_expmonth',
-				'psense_expyear',
-			);
-			foreach ( $required_card_fields as $field ) {
-				if ( empty( wc_get_post_data_by_key( $field ) ) ) {
-					wc_add_notice( 'Required variable (' . $field . ') is missing', 'error' );
-					$result = false;
+			if ($this->is_connection_secure()) {
+				$result               = true;
+				$required_card_fields = array(
+					'psense_ccname',
+					'psense_ccnum',
+					'psense_cv2',
+					'psense_expmonth',
+					'psense_expyear',
+				);
+				foreach ( $required_card_fields as $field ) {
+					if ( empty( wc_get_post_data_by_key( $field ) ) ) {
+						wc_add_notice( 'Required variable (' . $field . ') is missing', 'error' );
+						$result = false;
+					}
 				}
+				return $result;
+			} else {
+				wc_add_notice( __( 'This module requires an encrypted connection. ', 'woocommerce-paymentsense' ), 'error' );
+				return false;
 			}
-			return $result;
 		}
 
 		/**
@@ -465,7 +470,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				'pareq'      => $paymentsense_sess['pareq'],
 				'crossref'   => $paymentsense_sess['crossref'],
 				'cancel_url' => $order->get_cancel_order_url(),
-				'spinner'    => plugins_url( PS_IMG_SPINNER, __FILE__ ),
+				'spinner'    => PS_IMG_SPINNER,
 			);
 
 			$this->show_output(
@@ -498,7 +503,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'pares'      => $pares,
 					'crossref'   => $md,
 					'cancel_url' => '',
-					'spinner'    => plugins_url( PS_IMG_SPINNER, __FILE__ ),
+					'spinner'    => PS_IMG_SPINNER,
 				);
 
 				$this->show_output(

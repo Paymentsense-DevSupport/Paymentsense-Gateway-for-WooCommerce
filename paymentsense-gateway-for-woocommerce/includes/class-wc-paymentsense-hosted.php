@@ -359,7 +359,12 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 				return;
 			}
 
-			$order = new WC_Order( $order_id );
+			try {
+				$order = new WC_Order( $order_id );
+			} catch (Exception $e) {
+				$message = 'An error occurred while processing order #' . $order_id . '. Error message: ' . $e->getMessage();
+				$this->output_message( $message );
+			}
 
 			if ( ! $this->is_hash_digest_valid() ) {
 				$message = 'Invalid HashDigest';

@@ -30,13 +30,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php
 	}
 	?>
-    <noscript>
         <!-- Button Fallback -->
         <div class="payment_buttons">
             <input type="submit" class="button alt" id="submit_paymentsense_payment_form" value="<?php echo __( 'Pay via Paymentsense', 'woocommerce-paymentsense' ); ?>" />
             <a class="button cancel" href="<?php esc_url( $cancel_url ); ?>"><?php echo __( 'Cancel order &amp; restore cart', 'woocommerce-paymentsense' ); ?></a>
         </div>
-    </noscript>
 </form>
 <script type="text/javascript">
 	jQuery(function(){

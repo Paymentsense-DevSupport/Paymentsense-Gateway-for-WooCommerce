@@ -1,5 +1,12 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.1
+Paymentsense Gateway for WooCommerce 3.0.2
+
+## [3.0.2] - 2018-03-21
+### Added
+- Add error handler on non-existent orders
+
+### Fixed
+- Fix the submission of client data to the gateway
 
 ## [3.0.1] - 2018-02-27
 ### Changed

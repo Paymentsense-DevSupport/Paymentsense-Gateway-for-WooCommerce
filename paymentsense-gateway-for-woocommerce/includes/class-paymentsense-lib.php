@@ -96,7 +96,7 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 			$card_logos = ( 'TRUE' === $this->amex_accepted ) ? PS_IMG_CARDS_WITH_AMEX : PS_IMG_CARDS_WITHOUT_AMEX;
 			$this->icon = apply_filters(
 				'woocommerce_' . $this->id . '_icon',
-				plugins_url( $card_logos, __FILE__ )
+				$card_logos
 			);
 
 			// Adds refunds support.
