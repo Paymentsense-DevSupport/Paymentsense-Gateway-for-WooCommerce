@@ -1,0 +1,33 @@
+# Changelog
+Paymentsense Gateway for WooCommerce 3.0.0
+3.0.0 is a major update that implements new features, compatibility and security fixes
+
+## [3.0.0] - 2018-02-09
+### Added
+- Paymentsense Direct and Paymentsense Hosted combined in one WordPress plugin
+- Automated refunds
+- Check of the required card fields (Paymentsense Direct)
+- Payment gateway settings check
+- i18n support
+- WordPress Coding Standards compliance
+
+### Changed
+- Payment gateway classes, common library and defines included in a "includes" folder
+- The HTML code is moved to the respective templates files in a "templates" folder
+- "images" folder moved under the "assets" folder
+- "changelog" moved to a separate file
+
+### Removed
+- Pre-authorisation option (PREAUTH) in the admin menu
+
+### Fixed
+- Compatibility issues
+
+### Security
+- SSL/TLS check before displaying the card form (Paymentsense Direct)
+- Autocomplete turned off on the card form (Paymentsense Direct)
+- Gateway response authentication implemented (Paymentsense Hosted)
+
+### Unreleased
+- Pre-authorisation support
+- Collection support

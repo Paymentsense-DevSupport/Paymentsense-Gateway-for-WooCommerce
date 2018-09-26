@@ -1,0 +1,218 @@
+msgid ""
+msgstr ""
+
+msgid "Enable/Disable:"
+msgstr "Enable/Disable:"
+
+msgid "Enable "
+msgstr "Enable "
+
+msgid "Module Options"
+msgstr "Module Options"
+
+msgid "The following options affect how the "
+msgstr "The following options affect how the "
+
+msgid " Module is displayed on the frontend."
+msgstr " Module is displayed on the frontend."
+
+msgid "Title:"
+msgstr "Title:"
+
+msgid "This controls the title which the customer sees during checkout."
+msgstr "This controls the title which the customer sees during checkout."
+
+msgid "Description:"
+msgstr "Description:"
+
+msgid "This controls the description which the customer sees during checkout."
+msgstr "This controls the description which the customer sees during checkout."
+
+msgid "Pay securely by Credit or Debit card through "
+msgstr "Pay securely by Credit or Debit card through "
+
+msgid "Order Prefix:"
+msgstr "Order Prefix:"
+
+msgid "This is the order prefix that you will see in the MMS."
+msgstr "This is the order prefix that you will see in the MMS."
+
+msgid "Gateway Settings"
+msgstr "Gateway Settings"
+
+msgid "These are the gateway settings to allow you to connect with the Paymentsense gateway. (These are not the details used to login to the MMS)"
+msgstr "These are the gateway settings to allow you to connect with the Paymentsense gateway. (These are not the details used to login to the MMS)"
+
+msgid "Gateway MerchantID:"
+msgstr "Gateway MerchantID:"
+
+msgid "This is the gateway MerchantID not used with the MMS login. The Format should match the following ABCDEF-1234567"
+msgstr "This is the gateway MerchantID not used with the MMS login. The Format should match the following ABCDEF-1234567"
+
+msgid "Gateway Password:"
+msgstr "Gateway Password:"
+
+msgid "This is the gateway Password not used with the MMS login. The Password should use lower case and uppercase letters, and numbers only."
+msgstr "This is the gateway Password not used with the MMS login. The Password should use lower case and uppercase letters, and numbers only."
+
+msgid "Gateway PreSharedKey:"
+msgstr "Gateway PreSharedKey:"
+
+msgid "This is located within the MMS under \"Account Admin Settings\" > \"Account Settings\"."
+msgstr "This is located within the MMS under \"Account Admin Settings\" > \"Account Settings\"."
+
+msgid "Gateway Hash Method:"
+msgstr "Gateway Hash Method:"
+
+msgid "This is the hash method set in MMS under \"Account Admin\" > \"Account Settings\". By default, this will be SHA1."
+msgstr "This is the hash method set in MMS under \"Account Admin\" > \"Account Settings\". By default, this will be SHA1."
+
+msgid "Transaction Type:"
+msgstr "Transaction Type:"
+
+msgid "If you wish to obtain authorisation for the payment only, as you intend to manually collect the payment via the MMS, choose Pre-auth."
+msgstr "If you wish to obtain authorisation for the payment only, as you intend to manually collect the payment via the MMS, choose Pre-auth."
+
+msgid "Sale"
+msgstr "Sale"
+
+msgid "Pre-Auth"
+msgstr "Pre-Auth"
+
+msgid "Accept American Express?"
+msgstr "Accept American Express?"
+
+msgid "Tick only if you have an American Express MID associated with your Paymentsense gateway account."
+msgstr "Tick only if you have an American Express MID associated with your Paymentsense gateway account."
+
+msgid "Payment Form Additional Field"
+msgstr "Payment Form Additional Field"
+
+msgid "These options allow the customer to change the email address and phone number on the payment form."
+msgstr "These options allow the customer to change the email address and phone number on the payment form."
+
+msgid "Email Address can be altered on payment form:"
+msgstr "Email Address can be altered on payment form:"
+
+msgid "This option allows the customer to change the email address that entered during checkout. By default the Paymentsense module will pass the customers email address that they entered during checkout."
+msgstr "This option allows the customer to change the email address that entered during checkout. By default the Paymentsense module will pass the customers email address that they entered during checkout."
+
+msgid "Yes"
+msgstr "Yes"
+
+msgid "No"
+msgstr "No"
+
+msgid "Phone Number can be altered on payment form:"
+msgstr "Phone Number can be altered on payment form:"
+
+msgid "This option allows the customer to change the phone number that entered during checkout. By default the Paymentsense module will pass the customers phone number that they entered during checkout."
+msgstr "This option allows the customer to change the phone number that entered during checkout. By default the Paymentsense module will pass the customers phone number that they entered during checkout."
+
+msgid "Payment Form Mandatory Fields"
+msgstr "Payment Form Mandatory Fields"
+
+msgid "These options allow you to change what fields are mandatory for the customers to complete on the payment form. (The default settings are recommended by Paymentsense)"
+msgstr "These options allow you to change what fields are mandatory for the customers to complete on the payment form. (The default settings are recommended by Paymentsense)"
+
+msgid "Address Line 1 Mandatory:"
+msgstr "Address Line 1 Mandatory:"
+
+msgid "Define the Address Line 1 as a Mandatory field on the Payment form. This is used for the Address Verification System (AVS) check on the customers card. Recommended Setting \"Yes\"."
+msgstr "Define the Address Line 1 as a Mandatory field on the Payment form. This is used for the Address Verification System (AVS) check on the customers card. Recommended Setting \"Yes\"."
+
+msgid "City Mandatory:"
+msgstr "City Mandatory:"
+
+msgid "Define the City as a Mandatory field on the Payment form."
+msgstr "Define the City as a Mandatory field on the Payment form."
+
+msgid "State/County Mandatory:"
+msgstr "State/County Mandatory:"
+
+msgid "Define the State/County as a Mandatory field on the Payment form."
+msgstr "Define the State/County as a Mandatory field on the Payment form."
+
+msgid "Post Code Mandatory:"
+msgstr "Post Code Mandatory:"
+
+msgid "Define the Post Code as a Mandatory field on the Payment form. This is used for the Address Verification System (AVS) check on the customers card. Recommended Setting \"Yes\"."
+msgstr "Define the Post Code as a Mandatory field on the Payment form. This is used for the Address Verification System (AVS) check on the customers card. Recommended Setting \"Yes\"."
+
+msgid "Country Mandatory:"
+msgstr "Country Mandatory:"
+
+msgid "Define the Country as a Mandatory field on the Payment form."
+msgstr "Define the Country as a Mandatory field on the Payment form."
+
+msgid "Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment."
+msgstr "Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment."
+
+msgid "Pay via Paymentsense"
+msgstr "Pay via Paymentsense"
+
+msgid "Cancel order &amp; restore cart"
+msgstr "Cancel order &amp; restore cart"
+
+msgid "We are now redirecting you to Paymentsense to complete your payment."
+msgstr "We are now redirecting you to Paymentsense to complete your payment."
+
+msgid "Payment Successful: "
+msgstr "Payment Successful: "
+
+msgid "Paymentsense Direct 3D payment completed"
+msgstr "Paymentsense Direct 3D payment completed"
+
+msgid "This module requires an encrypted connection. "
+msgstr "This module requires an encrypted connection. "
+
+msgid "Please enable SSL/TLS."
+msgstr "Please enable SSL/TLS."
+
+msgid "This module is not configured. Please configure gateway settings."
+msgstr "This module is not configured. Please configure gateway settings."
+
+msgid "Payment Failed due to: "
+msgstr "Payment Failed due to: "
+
+msgid "Please check your card details and try again."
+msgstr "Please check your card details and try again."
+
+msgid "An unexpected error has occurred. "
+msgstr "An unexpected error has occurred. "
+
+msgid "Please contact Customer Support."
+msgstr "Please contact Customer Support."
+
+msgid "Paymentsense Direct 3D Secure Password Check Failed. "
+msgstr "Paymentsense Direct 3D Secure Password Check Failed. "
+
+msgid "Refund was declined. "
+msgstr "Refund was declined. "
+
+msgid "Card Name:"
+msgstr "Card Name:"
+
+msgid "Credit Card Number:"
+msgstr "Credit Card Number:"
+
+msgid "CVV/CV2 Number:"
+msgstr "CVV/CV2 Number:"
+
+msgid "Issue Number:"
+msgstr "Issue Number:"
+
+msgid "(Maestro/Solo only)."
+msgstr "(Maestro/Solo only)."
+
+msgid "Expiration date:"
+msgstr "Expiration date:"
+
+msgid "Month"
+msgstr "Month"
+
+msgid "Year"
+msgstr "Year"
+
+msgid "Redirecting..."
+msgstr "Redirecting..."
