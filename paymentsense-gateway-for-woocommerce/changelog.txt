@@ -1,6 +1,9 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.0
-3.0.0 is a major update that implements new features, compatibility and security fixes
+Paymentsense Gateway for WooCommerce 3.0.1
+
+## [3.0.1] - 2018-02-27
+### Changed
+- Update the readme file
 
 ## [3.0.0] - 2018-02-09
 ### Added

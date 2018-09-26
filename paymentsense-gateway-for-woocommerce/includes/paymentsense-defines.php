@@ -28,7 +28,7 @@ define( 'PS_TRX_RESULT_FAILED', '30' );
 /**
  * Images
  */
-define( 'PS_IMG_LOGO', '../assets/images/paymentsense.gif' );
-define( 'PS_IMG_CARDS_WITH_AMEX', '../assets/images/paymentsense-logos-with-amex.png' );
-define( 'PS_IMG_CARDS_WITHOUT_AMEX', '../assets/images/paymentsense-logos-no-amex.png' );
-define( 'PS_IMG_SPINNER', '../assets/images/AJAXSpinner.gif' );
+define( 'PS_IMG_LOGO', plugins_url( 'assets/images/paymentsense.gif', dirname( __FILE__ ) ) );
+define( 'PS_IMG_CARDS_WITH_AMEX', plugins_url( 'assets/images/paymentsense-logos-with-amex.png', dirname( __FILE__ ) ) );
+define( 'PS_IMG_CARDS_WITHOUT_AMEX', plugins_url( 'assets/images/paymentsense-logos-no-amex.png', dirname( __FILE__ ) ) );
+define( 'PS_IMG_SPINNER', plugins_url( 'assets/images/AJAXSpinner.gif', dirname( __FILE__ ) ) );

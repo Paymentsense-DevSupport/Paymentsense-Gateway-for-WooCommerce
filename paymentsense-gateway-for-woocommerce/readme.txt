@@ -4,7 +4,7 @@
 Tags: paymentsense, payments
 Requires at least: 4.4
 Tested up to: 4.9.4
-Stable tag: 3.0.0
+Stable tag: 3.0.1
 Requires PHP: 5.6.0
 
 License: GPLv3
@@ -22,6 +22,11 @@ In regards to taking payments online through your website, you have two options 
 Hosted means that during the checkout process the user is redirected to a page hosted by Paymentsense in order to enter their card details and finalise the payment and then is redirected back to your site for the order confirmation. This also has a lower PCI compliance level and has less technical requirements from the web server.
 
 Direct on the other hand means that during the checkout process the customer enters their card details directly onto your website. This has a higher level of PCI compliance and also requires port 4430 to be open as well as an active SSL certificate.
+
+= Support =
+
+<a href="mailto:devsupport@paymentsense.com">devsupport@paymentsense.com</a>
+
 
 == Installation ==
 
@@ -128,6 +133,3 @@ The usage of the Paymentsense Direct Gateway involves the following additional s
 == Changelog ==
 
 See changelog.txt file
-
-== Support ==
-[support]: mailto:devsupport@paymentsense.com
