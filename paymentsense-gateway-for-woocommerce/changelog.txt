@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.5
+Paymentsense Gateway for WooCommerce 3.0.6
+
+
+## [3.0.6] - 2018-09-27
+### Added
+- Plugin incompatibility check on the activation of the Paymentsense and the incompatible plugins
+
+### Removed
+- Incompatibility message on the settings page of the payment methods
 
 
 ## [3.0.5] - 2018-09-26

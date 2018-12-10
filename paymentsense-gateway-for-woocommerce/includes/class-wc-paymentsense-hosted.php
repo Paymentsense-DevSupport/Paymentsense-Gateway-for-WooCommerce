@@ -486,6 +486,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 						$order->payment_complete();
 						if ( ! $this->authenticated ) {
 							$auth_instructions  = sprintf(
+								// Translators: %1$s - transaction cross reference, %2$s - transaction message.
 								__( 'Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. ', 'woocommerce-paymentsense' ),
 								$cross_ref,
 								$message
@@ -560,6 +561,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 				wp_safe_redirect( $location );
 			} catch ( Exception $exception ) {
 				$message = sprintf(
+					// Translators: %1$s - order number, %2$s - error message.
 					__( 'An error occurred while processing order#%1$s. Error message: %2$s', 'woocommerce-paymentsense' ),
 					$this->get_http_var( 'OrderID' ),
 					$exception->getMessage()
@@ -623,6 +625,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 						$order->payment_complete();
 						if ( ! $this->authenticated ) {
 							$auth_instructions  = sprintf(
+								// Translators: %1$s - transaction cross reference, %2$s - transaction message.
 								__( 'Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. ', 'woocommerce-paymentsense' ),
 								$cross_ref,
 								$message
@@ -658,6 +661,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 				wp_safe_redirect( $location );
 			} catch ( Exception $exception ) {
 				$message = sprintf(
+					// Translators: %1$s - order number, %2$s - error message.
 					__( 'An error occurred while processing order#%1$s. Error message: %2$s', 'woocommerce-paymentsense' ),
 					$this->get_http_var( 'OrderID' ),
 					$exception->getMessage()

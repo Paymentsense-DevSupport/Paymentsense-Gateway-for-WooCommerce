@@ -120,49 +120,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Gets list of the the confirmed incompatible plugins
-		 *
-		 * @return  string
-		 */
-		protected function get_incompatible_plugins() {
-			$incompatible_plugins_found = '';
-			$active_plugins             = get_option( 'active_plugins' );
-			foreach ( $active_plugins as $plugin_path ) {
-				$parts       = explode( '/', $plugin_path );
-				$plugin_slug = $parts[0];
-				if ( array_key_exists( $plugin_slug, $this->incompatible_plugins ) ) {
-					$plugin_text = '"' . $this->incompatible_plugins[ $plugin_slug ] . '"';
-					if ( empty( $incompatible_plugins_found ) ) {
-						$incompatible_plugins_found = $plugin_text;
-					} else {
-						$incompatible_plugins_found .= ', ' . $plugin_text;
-					}
-				}
-			}
-			return $incompatible_plugins_found;
-		}
-
-		/**
-		 * Builds a message and list of the the confirmed incompatible plugins
-		 *
-		 * @return  string
-		 */
-		public function output_incompatible_plugins() {
-			$incompatible_plugins = $this->get_incompatible_plugins();
-			if ( ! empty( $incompatible_plugins ) ) {
-				$incompatible_plugins  =
-					__(
-						'The following incompatible plugin(s) with the Paymentsense plugin is(are) found: ',
-						'woocommerce-paymentsense'
-					) .
-					$incompatible_plugins .
-					'.';
-				$incompatible_plugins .= '<br><br>' . __( 'Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts.', 'woocommerce-paymentsense' );
-			}
-			return $incompatible_plugins;
-		}
-
-		/**
 		 * Gets payment form URL
 		 *
 		 * @return  string

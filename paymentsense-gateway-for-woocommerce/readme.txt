@@ -1,14 +1,15 @@
 === WooCommerce Paymentsense Gateway ===
 
-Tags: paymentsense, payments
+Contributors: paymentsense, alexanderkaltchev
+Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 4.9.8
-Stable tag: 3.0.5
+Stable tag: 3.0.6
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Paymentsense is a plugin that extends WooCommerce, allowing you to take payments via Paymentsense.
+Extends WooCommerce, allowing you to take payments via Paymentsense. Provides integration with Paymentsense Hosted and Direct.
 
 == Description ==
 
@@ -129,16 +130,11 @@ The usage of the Paymentsense Direct Gateway involves the following additional s
 
 == Changelog ==
 
-## [3.0.5] - 2018-09-26
+## [3.0.6] - 2018-09-27
 ### Added
-- SERVER result delivery method (Paymentsense Hosted)
-- Method description (Paymentsense Direct)
-
-### Changed
-- "On Hold" order status when a non-authenticated (Invalid Hash Digest) response from the gateway is received (Paymentsense Hosted)
-- Redirect to the Hosted Payment Form (Paymentsense Hosted)
+- Plugin incompatibility check on the activation of the Paymentsense and the incompatible plugins
 
 ### Removed
-- Sanity check of the POST parameters of the responses from the gateway (Paymentsense Hosted)
+- Incompatibility message on the settings page of the payment methods
 
 For information on the changes in the previous versions, see the changelog.txt file.

@@ -223,15 +223,6 @@ msgstr "Year"
 msgid "Redirecting..."
 msgstr "Redirecting..."
 
-msgid "Incompatibility Warning:"
-msgstr "Incompatibility Warning:"
-
-msgid "The following incompatible plugin(s) is(are) found: "
-msgstr "The following incompatible plugin(s) is(are) found: "
-
-msgid "Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts."
-msgstr "Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts."
-
 msgid "Error message: "
 msgstr "Error message: "
 
@@ -264,3 +255,12 @@ msgstr "An error occurred while processing your payment. Payment status is unkno
 
 msgid "An error occurred while processing order#%1$s. Error message: %2$s"
 msgstr "An error occurred while processing order#%1$s. Error message: %2$s"
+
+msgid "Warning: Paymentsense Gateway for WooCommerce plugin is incompatible with the following plugin(s): %s."
+msgstr "Warning: Paymentsense Gateway for WooCommerce plugin is incompatible with the following plugin(s): %s."
+
+msgid "As a result of that Paymentsense Gateway for WooCommerce is deactivated."
+msgstr "As a result of that Paymentsense Gateway for WooCommerce is deactivated."
+
+msgid "&laquo; Go Back"
+msgstr "&laquo; Go Back"
