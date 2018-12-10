@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<input name="PaReq" type="hidden" value="<?php echo esc_attr( $args['pareq'] ); ?>"/>
 	<iframe id="ACSFrame" name="ACSFrame" src="<?php echo esc_url( $args['spinner'] ); ?>"
 			width="100%" height="400" style="overflow-y:scroll;border:0"></iframe>
-	<a class="button cancel" href="<?php echo esc_url( $args['cancel_url'] ); ?>"><?php esc_html_e( 'Cancel order & restore cart', 'woocommerce-paymentsense' ); ?></a>
+	<a href="<?php echo esc_url( $args['cancel_url'] ); ?>"><?php esc_html_e( 'Cancel order & restore cart', 'woocommerce-paymentsense' ); ?></a>
 	<script type="text/javascript">
 		window.onload = function () {
 			var auto_refresh = setInterval(function () {
