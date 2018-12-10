@@ -216,3 +216,12 @@ msgstr "Year"
 
 msgid "Redirecting..."
 msgstr "Redirecting..."
+
+msgid "Incompatibility Warning:"
+msgstr "Incompatibility Warning:"
+
+msgid "The following incompatible plugin(s) is(are) found: "
+msgstr "The following incompatible plugin(s) is(are) found: "
+
+msgid "Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts."
+msgstr "Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts."

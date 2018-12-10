@@ -73,6 +73,15 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 		protected $order_prefix;
 
 		/**
+		 * Incompatible Plugins
+		 *
+		 * @var array
+		 */
+		protected $incompatible_plugins = array(
+			'woocommerce-sequential-order-numbers' => 'WooCommerce Sequential Order Numbers',
+		);
+
+		/**
 		 * Paymentsense Gateway Class Constructor
 		 */
 		public function __construct() {
@@ -101,6 +110,49 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 
 			// Adds refunds support.
 			array_push( $this->supports, 'refunds' );
+		}
+
+		/**
+		 * Gets list of the the confirmed incompatible plugins
+		 *
+		 * @return  string
+		 */
+		protected function get_incompatible_plugins() {
+			$incompatible_plugins_found = '';
+			$active_plugins             = get_option( 'active_plugins' );
+			foreach ( $active_plugins as $plugin_path ) {
+				$parts       = explode( '/', $plugin_path );
+				$plugin_slug = $parts[0];
+				if ( array_key_exists( $plugin_slug, $this->incompatible_plugins ) ) {
+					$plugin_text = '"' . $this->incompatible_plugins[ $plugin_slug ] . '"';
+					if ( empty( $incompatible_plugins_found ) ) {
+						$incompatible_plugins_found = $plugin_text;
+					} else {
+						$incompatible_plugins_found .= ', ' . $plugin_text;
+					}
+				}
+			}
+			return $incompatible_plugins_found;
+		}
+
+		/**
+		 * Builds a message and list of the the confirmed incompatible plugins
+		 *
+		 * @return  string
+		 */
+		public function output_incompatible_plugins() {
+			$incompatible_plugins = $this->get_incompatible_plugins();
+			if ( ! empty( $incompatible_plugins ) ) {
+				$incompatible_plugins  =
+					__(
+						'The following incompatible plugin(s) with the Paymentsense plugin is(are) found: ',
+						'woocommerce-paymentsense'
+					) .
+					$incompatible_plugins .
+					'.';
+				$incompatible_plugins .= '<br><br>' . __( 'Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts.', 'woocommerce-paymentsense' );
+			}
+			return $incompatible_plugins;
 		}
 
 		/**
@@ -421,8 +473,6 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 		 * @param  int    $order_id Order ID.
 		 * @param  float  $amount Refund amount.
 		 * @param  string $reason Refund Reason.
-		 * @uses   Simplify_ApiException
-		 * @uses   Simplify_BadRequestException
 		 * @return bool|WP_Error
 		 */
 		public function process_refund( $order_id, $amount = null, $reason = '' ) {

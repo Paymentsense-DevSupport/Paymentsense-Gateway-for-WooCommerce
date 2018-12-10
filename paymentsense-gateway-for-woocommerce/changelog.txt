@@ -1,5 +1,9 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.3
+Paymentsense Gateway for WooCommerce 3.0.4
+
+## [3.0.4] - 2018-06-08
+### Added
+- Check for confirmed incompatible WordPress plugins with the Paymentsense plugin (currently "WooCommerce Sequential Order Numbers")
 
 ## [3.0.3] - 2018-03-21
 ### Fixed

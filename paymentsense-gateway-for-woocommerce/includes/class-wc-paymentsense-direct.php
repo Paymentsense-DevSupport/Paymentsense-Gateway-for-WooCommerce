@@ -205,7 +205,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 		 * @return bool
 		 */
 		public function validate_fields() {
-			if ($this->is_connection_secure()) {
+			if ( $this->is_connection_secure() ) {
 				$result               = true;
 				$required_card_fields = array(
 					'psense_ccname',

@@ -361,7 +361,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 
 			try {
 				$order = new WC_Order( $order_id );
-			} catch (Exception $e) {
+			} catch ( Exception $e ) {
 				$message = 'An error occurred while processing order #' . $order_id . '. Error message: ' . $e->getMessage();
 				$this->output_message( $message );
 			}

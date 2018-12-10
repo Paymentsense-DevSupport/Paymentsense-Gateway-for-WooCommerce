@@ -2,8 +2,8 @@
 
 Tags: paymentsense, payments
 Requires at least: 4.4
-Tested up to: 4.9.4
-Stable tag: 3.0.3
+Tested up to: 4.9.6
+Stable tag: 3.0.4
 Requires PHP: 5.6.0
 
 License: GPLv3
@@ -33,7 +33,7 @@ Direct on the other hand means that during the checkout process the customer ent
 
 * PHP version 5.6.0 or greater
 * WordPress 4.4+
-* WooCommerce 3.x (tested up to 3.3.3)
+* WooCommerce 3.x (tested up to 3.4.2)
 * PCI-certified server using SSL/TLS in order to use the Direct Method
 
 = Plugin Installation =
@@ -131,4 +131,8 @@ The usage of the Paymentsense Direct Gateway involves the following additional s
 
 == Changelog ==
 
-See changelog.txt file
+## [3.0.4] - 2018-06-08
+### Added
+- Check for confirmed incompatible WordPress plugins with the Paymentsense plugin (currently "WooCommerce Sequential Order Numbers")
+
+For information on the changes in the previous versions, see the changelog.txt file.
