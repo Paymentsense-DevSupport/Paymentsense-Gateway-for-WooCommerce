@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 4.9.8
-Stable tag: 3.0.7
+Stable tag: 3.0.8
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -115,6 +115,6 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.7] - 2018-11-27
-### Added
-- Warning regarding the WooCommerce 3.5.x bug that affects Paymentsense Hosted ("we do not have enough ... in stock to fulfill your order")
+## [3.0.8] - 2018-12-06
+### Removed
+- Check whether the store is configured to use a secure connection based on the woocommerce_force_ssl_checkout setting (Paymentsense Direct)

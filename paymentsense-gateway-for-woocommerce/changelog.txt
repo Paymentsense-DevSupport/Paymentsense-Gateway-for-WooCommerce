@@ -1,5 +1,10 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.7
+Paymentsense Gateway for WooCommerce 3.0.8
+
+
+## [3.0.8] - 2018-12-06
+### Removed
+- Check whether the store is configured to use a secure connection based on the woocommerce_force_ssl_checkout setting (Paymentsense Direct)
 
 
 ## [3.0.7] - 2018-11-27

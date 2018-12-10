@@ -165,7 +165,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @return bool
 		 */
 		public function is_connection_secure() {
-			return is_ssl() && ( 'yes' === get_option( 'woocommerce_force_ssl_checkout' ) );
+			return is_ssl();
 		}
 
 		/**
