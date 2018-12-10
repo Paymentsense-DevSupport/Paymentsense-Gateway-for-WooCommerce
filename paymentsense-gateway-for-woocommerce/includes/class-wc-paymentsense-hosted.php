@@ -63,8 +63,11 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		 */
 		public $has_fields = false;
 
-
-		/** @var array */
+		/**
+		 * An array containing the status code and message outputted on the response of the gateway callbacks
+		 *
+		 * @var array
+		 */
 		protected $response_vars = array(
 			'status_code' => '',
 			'message'     => '',
@@ -438,6 +441,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		 * @throws Exception Throws exception if Order ID is empty.
 		 */
 		public function process_server_notification() {
+			$order_id = null;
 			try {
 				$order_id = $this->get_http_var( 'OrderID' );
 				if ( empty( $order_id ) ) {
@@ -485,7 +489,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					case 'success':
 						$order->payment_complete();
 						if ( ! $this->authenticated ) {
-							$auth_instructions  = sprintf(
+							$auth_instructions = sprintf(
 								// Translators: %1$s - transaction cross reference, %2$s - transaction message.
 								__( 'Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. ', 'woocommerce-paymentsense' ),
 								$cross_ref,
@@ -624,7 +628,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					case 'success':
 						$order->payment_complete();
 						if ( ! $this->authenticated ) {
-							$auth_instructions  = sprintf(
+							$auth_instructions = sprintf(
 								// Translators: %1$s - transaction cross reference, %2$s - transaction message.
 								__( 'Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. ', 'woocommerce-paymentsense' ),
 								$cross_ref,

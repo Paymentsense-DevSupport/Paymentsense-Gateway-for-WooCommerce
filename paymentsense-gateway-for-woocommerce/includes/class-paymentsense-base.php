@@ -637,7 +637,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Gets the value of an HTTP variable based on the requested method or the default value if the variable does not exist
 		 *
 		 * @param string $field HTTP POST/GET variable.
-		 * @param string $default Default value
+		 * @param string $default Default value.
 		 * @return string
 		 */
 		protected function get_http_var( $field, $default = '' ) {
@@ -655,6 +655,17 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					return $default;
 			}
 			// @codingStandardsIgnoreEnd
+		}
+
+		/**
+		 * Gets a warning message, if applicable
+		 *
+		 * @return  string
+		 */
+		public static function get_warning_message() {
+			return version_compare( WC()->version, '3.5.0', '>=' )
+				? __( 'Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin. The behaviour of the bug consists in the appearance of the error message "Sorry, we do not have enough "..." in stock to fulfill your order (0 available)" on failed payments. See https://wordpress.org/support/topic/customer-payment-page-checking-stock-even-if-stock-management-is-disabled/', 'woocommerce-paymentsense' )
+				: '';
 		}
 	}
 }

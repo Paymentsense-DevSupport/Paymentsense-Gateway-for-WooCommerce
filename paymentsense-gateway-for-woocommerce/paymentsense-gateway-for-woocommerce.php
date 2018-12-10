@@ -4,7 +4,7 @@
  *
  * Plugin Name:          Paymentsense Gateway for WooCommerce
  * Description:          Extends WooCommerce by taking payments via Paymentsense. Provides integration with Paymentsense Hosted and Direct.
- * Version:              3.0.6
+ * Version:              3.0.7
  * Author:               Paymentsense
  * Author URI:           http://www.paymentsense.co.uk/
  * License:              GNU General Public License v3.0
@@ -13,7 +13,7 @@
  * Requires at least:    4.4
  * Tested up to:         4.9.8
  * WC requires at least: 3.0.9
- * WC tested up to:      3.4.5
+ * WC tested up to:      3.5.1
  *
  * @package WooCommerce_Paymentsense_Gateway
  * @wordpress-plugin
@@ -96,6 +96,27 @@ function get_incompatible_plugins() {
 }
 
 /**
+ * Shows a notice on the plugins page at the admin area, if applicable
+ */
+function paymentsense_show_admin_notice() {
+	global $pagenow;
+	if ( 'plugins.php' === $pagenow ) {
+		$warning = Paymentsense_Base::get_warning_message();
+		if ( ! empty( $warning ) ) {
+			echo '<div class="notice notice-error is-dismissible"><p>';
+			echo wp_kses(
+				sprintf( '<strong>%s</strong>', $warning ),
+				array(
+					'strong' => array(),
+					'br'     => array(),
+				)
+			);
+			echo '</p></div>';
+		}
+	}
+}
+
+/**
  * Hooks Paymentsense on the plugins_loaded action if WooCommerce is active
  */
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
@@ -132,4 +153,5 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		}
 	}
 	add_action( 'plugins_loaded', 'woocommerce_paymentsense_init', 0 );
+	add_action( 'admin_notices', 'paymentsense_show_admin_notice' );
 }

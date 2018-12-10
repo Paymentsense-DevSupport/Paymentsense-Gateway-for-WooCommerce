@@ -1,5 +1,10 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.6
+Paymentsense Gateway for WooCommerce 3.0.7
+
+
+## [3.0.7] - 2018-11-27
+### Added
+- Warning regarding the WooCommerce 3.5.x bug that affects Paymentsense Hosted ("we do not have enough ... in stock to fulfill your order")
 
 
 ## [3.0.6] - 2018-09-27
