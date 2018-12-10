@@ -15,14 +15,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit();
 }
 
-if ( ! class_exists( 'Paymentsense_Lib' ) ) {
+if ( ! class_exists( 'Paymentsense_Base' ) ) {
 
 	/**
-	 * Paymentsense_Lib class.
+	 * Paymentsense_Base class.
 	 *
 	 * @extends WC_Payment_Gateway
 	 */
-	class Paymentsense_Lib extends WC_Payment_Gateway {
+	class Paymentsense_Base extends WC_Payment_Gateway {
+
+		/**
+		 * Request Types
+		 */
+		const REQ_NOTIFICATION      = '0';
+		const REQ_CUSTOMER_REDIRECT = '1';
+
 		/**
 		 * Payment Gateway Merchant ID
 		 *
@@ -205,43 +212,54 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 		}
 
 		/**
-		 * Builds a string containing the expected fields from the POST request received from the payment gateway
+		 * Builds a string containing the variables for calculating the hash digest
+		 *
+		 * @param string $request_type Type of the request (notification or customer redirect).
 		 *
 		 * @return bool
 		 */
-		public function get_post_string() {
-			$result = 'MerchantID=' . $this->gateway_merchant_id .
-				'&Password=' . $this->gateway_password;
-
+		public function build_variables_string( $request_type ) {
+			$result = false;
 			$fields = array(
-				'StatusCode',
-				'Message',
-				'PreviousStatusCode',
-				'PreviousMessage',
-				'CrossReference',
-				'Amount',
-				'CurrencyCode',
-				'OrderID',
-				'TransactionType',
-				'TransactionDateTime',
-				'OrderDescription',
-				'CustomerName',
-				'Address1',
-				'Address2',
-				'Address3',
-				'Address4',
-				'City',
-				'State',
-				'PostCode',
-				'CountryCode',
-				'EmailAddress',
-				'PhoneNumber',
+				// Variables for hash digest calculation for notification requests (excluding configuration variables).
+				self::REQ_NOTIFICATION      => array(
+					'StatusCode',
+					'Message',
+					'PreviousStatusCode',
+					'PreviousMessage',
+					'CrossReference',
+					'Amount',
+					'CurrencyCode',
+					'OrderID',
+					'TransactionType',
+					'TransactionDateTime',
+					'OrderDescription',
+					'CustomerName',
+					'Address1',
+					'Address2',
+					'Address3',
+					'Address4',
+					'City',
+					'State',
+					'PostCode',
+					'CountryCode',
+					'EmailAddress',
+					'PhoneNumber',
+				),
+				// Variables for hash digest calculation for customer redirects (excluding configuration variables).
+				self::REQ_CUSTOMER_REDIRECT => array(
+					'CrossReference',
+					'OrderID',
+				),
 			);
 
-			foreach ( $fields as $field ) {
-				$result .= '&' . $field . '=' . wc_get_post_data_by_key( $field );
+			if ( array_key_exists( $request_type, $fields ) ) {
+				$result = 'MerchantID=' . $this->gateway_merchant_id .
+					'&Password=' . $this->gateway_password;
+				foreach ( $fields[ $request_type ] as $field ) {
+					$result .= '&' . $field . '=' . $this->get_http_var( $field );
+				}
 			}
-
 			return $result;
 		}
 
@@ -413,8 +431,8 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 				'PostCodeMandatory'         => $this->get_option( 'postcode_mandatory' ),
 				'StateMandatory'            => $this->get_option( 'state_mandatory' ),
 				'CountryMandatory'          => $this->get_option( 'country_mandatory' ),
-				'ResultDeliveryMethod'      => 'POST',
-				'ServerResultURL'           => '',
+				'ResultDeliveryMethod'      => $this->get_option( 'gateway_result_delivery' ),
+				'ServerResultURL'           => ( 'SERVER' === $this->get_option( 'gateway_result_delivery' ) ) ? WC()->api_request_url( get_class( $this ), is_ssl() ) : '',
 				'PaymentFormDisplaysResult' => 'false',
 			);
 
@@ -497,9 +515,7 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 				'Connection: close',
 			);
 			$xml      = '<?xml version="1.0" encoding="utf-8"?>
-                             <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                            xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                                  <soap:Body>
                                      <CrossReferenceTransaction xmlns="https://www.thepaymentgateway.net/">
                                          <PaymentMessage>
@@ -645,17 +661,43 @@ if ( ! class_exists( 'Paymentsense_Lib' ) ) {
 		/**
 		 * Checks whether the hash digest received from the gateway is valid
 		 *
+		 * @param string $request_type Type of the request (notification or customer redirect).
+		 *
 		 * @return bool
 		 */
-		protected function is_hash_digest_valid() {
+		protected function is_hash_digest_valid( $request_type ) {
 			$result = false;
-			$data   = $this->get_post_string();
+			$data   = $this->build_variables_string( $request_type );
 			if ( $data ) {
-				$hash_digest_received   = wc_get_post_data_by_key( 'HashDigest' );
+				$hash_digest_received   = $this->get_http_var( 'HashDigest' );
 				$hash_digest_calculated = $this->calculate_hash_digest( $data, $this->gateway_hashmethod, $this->gateway_presharedkey );
 				$result                 = strToUpper( $hash_digest_received ) === strToUpper( $hash_digest_calculated );
 			}
 			return $result;
+		}
+
+		/**
+		 * Gets the value of an HTTP variable based on the requested method or the default value if the variable does not exist
+		 *
+		 * @param string $field HTTP POST/GET variable.
+		 * @param string $default Default value
+		 * @return string
+		 */
+		protected function get_http_var( $field, $default = '' ) {
+			// @codingStandardsIgnoreStart
+			switch ( $_SERVER['REQUEST_METHOD'] ) {
+				case 'GET':
+					return array_key_exists( $field, $_GET )
+						? $_GET[ $field ]
+						: $default;
+				case 'POST':
+					return array_key_exists( $field, $_POST )
+						? $_POST[ $field ]
+						: $default;
+				default:
+					return $default;
+			}
+			// @codingStandardsIgnoreEnd
 		}
 	}
 }

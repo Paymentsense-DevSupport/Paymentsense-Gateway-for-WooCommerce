@@ -19,9 +19,22 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 	/**
 	 * WC_Paymentsense_Hosted class.
 	 *
-	 * @extends Paymentsense_Lib
+	 * @extends Paymentsense_Base
 	 */
-	class WC_Paymentsense_Hosted extends Paymentsense_Lib {
+	class WC_Paymentsense_Hosted extends Paymentsense_Base {
+		/**
+		 * Response Status Codes (used in the processing of the notification of the SERVER result delivery method)
+		 */
+		const STATUS_CODE_OK    = '0';
+		const STATUS_CODE_ERROR = '30';
+
+		/**
+		 * Response Messages (used in the processing of the notification of the SERVER result delivery method)
+		 */
+		const MSG_SUCCESS            = 'Request processed successfully.';
+		const MSG_UNSUPPORTED_STATUS = 'Unknown or unsupported payment status.';
+		const MSG_EXCEPTION          = 'An exception with message "%1$s" has been thrown while processing order #%2$s.';
+
 		/**
 		 * Payment method ID
 		 *
@@ -49,6 +62,21 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		 * @var bool
 		 */
 		public $has_fields = false;
+
+
+		/** @var array */
+		protected $response_vars = array(
+			'status_code' => '',
+			'message'     => '',
+		);
+
+		/**
+		 * Specifies whether the hash digest authentication on the data of the gateway
+		 * response matches the calculated one
+		 *
+		 * @var bool
+		 */
+		protected $authenticated = false;
 
 		/**
 		 * Paymentsense Hosted Class Constructor
@@ -173,6 +201,18 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
+				'gateway_result_delivery'              => array(
+					'title'       => __( 'Result Delivery Method:', 'woocommerce-paymentsense' ),
+					'type'        => 'select',
+					'description' => __( 'The Server Result Method determines how the transaction results are delivered back to the WooCommerce store.', 'woocommerce-paymentsense' ),
+					'default'     => 'POST',
+					'desc_tip'    => true,
+					'options'     => array(
+						'POST'   => 'POST',
+						'SERVER' => 'SERVER',
+					),
+				),
+
 				'amex_accepted'                        => array(
 					'title'       => __( 'Accept American Express?', 'woocommerce-paymentsense' ),
 					'type'        => 'checkbox',
@@ -277,6 +317,26 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 						'false' => __( 'No', 'woocommerce-paymentsense' ),
 					),
 				),
+
+				/*
+				 * // TODO: Implementation of removal of this code
+				 * Duplicate Delay Seetings. Started but postponed.
+				'gateway_delay_initial'                => array(
+					'title'       => __( 'Duplicate Delay (Initial):', 'woocommerce-paymentsense' ),
+					'type'        => 'text',
+					'description' => __( 'The amount of time in seconds that the initial (card details) transactions with same OrderID and CardNumber should be rejected.', 'woocommerce-paymentsense' ),
+					'default'     => 60,
+					'desc_tip'    => true,
+				),
+
+				'gateway_delay_crossref'               => array(
+					'title'       => __( 'Duplicate Delay (Refunds):', 'woocommerce-paymentsense' ),
+					'type'        => 'text',
+					'description' => __( 'The amount of time in seconds that the cross-reference (refund) transactions on same CrossReference should be rejected.', 'woocommerce-paymentsense' ),
+					'default'     => 60,
+					'desc_tip'    => true,
+				),
+				*/
 			);
 		}
 
@@ -321,10 +381,8 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 				'hosted-redirect.php',
 				array(
 					'title'            => __( 'Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment.', 'woocommerce-paymentsense' ),
-					'logo'             => PS_IMG_LOGO,
 					'paymentsense_adr' => $this->get_payment_form_url(),
 					'arguments'        => $this->build_form_fields( $order ),
-					'cancel_url'       => $order->get_cancel_order_url(),
 				)
 			);
 		}
@@ -349,28 +407,56 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		 * Processes the payment gateway response
 		 */
 		public function process_gateway_response() {
-			$location           = null;
-			$transaction_status = 'failed';
-
-			$order_id = wc_get_post_data_by_key( 'OrderID' );
-			$message  = wc_get_post_data_by_key( 'Message' );
-
-			if ( empty( $order_id ) ) {
-				return;
+			switch ( $this->get_option( 'gateway_result_delivery' ) ) {
+				case 'POST':
+					$this->authenticated = $this->is_hash_digest_valid( self::REQ_NOTIFICATION );
+					$this->process_post_response();
+					break;
+				case 'SERVER':
+					$request_type        = is_numeric( $this->get_http_var( 'StatusCode' ) )
+						? self::REQ_NOTIFICATION
+						: self::REQ_CUSTOMER_REDIRECT;
+					$this->authenticated = $this->is_hash_digest_valid( $request_type );
+					switch ( $request_type ) {
+						case self::REQ_NOTIFICATION:
+							$this->process_server_notification();
+							break;
+						case self::REQ_CUSTOMER_REDIRECT:
+							$this->process_server_customer_redirect();
+							break;
+					}
+					break;
+				default:
+					$this->output_message( __( 'Unsupported Result Delivery Method.', 'woocommerce-paymentsense' ) );
+					exit;
 			}
+		}
 
+		/**
+		 * Processes the notification of the SERVER result delivery method
+		 *
+		 * @throws Exception Throws exception if Order ID is empty.
+		 */
+		public function process_server_notification() {
 			try {
-				$order = new WC_Order( $order_id );
-			} catch ( Exception $e ) {
-				$message = 'An error occurred while processing order #' . $order_id . '. Error message: ' . $e->getMessage();
-				$this->output_message( $message );
-			}
+				$order_id = $this->get_http_var( 'OrderID' );
+				if ( empty( $order_id ) ) {
+					throw new Exception( __( 'Order ID is empty.', 'woocommerce-paymentsense' ) );
+				}
+				$location  = null;
+				$message   = $this->get_http_var( 'Message' );
+				$cross_ref = $this->get_http_var( 'CrossReference' );
+				$order     = new WC_Order( $order_id );
 
-			if ( ! $this->is_hash_digest_valid() ) {
-				$message = 'Invalid HashDigest';
-			} else {
-				update_post_meta( (int) $order_id, 'CrossRef', wc_get_post_data_by_key( 'CrossReference' ) );
-				switch ( wc_get_post_data_by_key( 'StatusCode' ) ) {
+				$auth_warning = ! $this->authenticated
+					? __(
+						'WARNING: The authenticity of the status of this transaction cannot be confirmed automatically! Please check the status at the MMS. ',
+						'woocommerce-paymentsense'
+					)
+					: '';
+
+				update_post_meta( (int) $order->get_id(), 'CrossRef', $this->get_http_var( 'CrossReference' ) );
+				switch ( $this->get_http_var( 'StatusCode' ) ) {
 					case PS_TRX_RESULT_SUCCESS:
 						$transaction_status = 'success';
 						break;
@@ -390,25 +476,231 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					case PS_TRX_RESULT_FAILED:
 						$transaction_status = 'failed';
 						break;
+					default:
+						$transaction_status = 'unsupported';
+						break;
 				}
+
+				switch ( $transaction_status ) {
+					case 'success':
+						$order->payment_complete();
+						if ( ! $this->authenticated ) {
+							$auth_instructions  = sprintf(
+								__( 'Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. ', 'woocommerce-paymentsense' ),
+								$cross_ref,
+								$message
+							);
+							$auth_instructions .= __( 'Once the transaction status and authentication code are confirmed set the order status to "Processing" and process the order normally. ', 'woocommerce-paymentsense' );
+							$order->update_status( 'on-hold', $auth_warning );
+							$order->add_order_note( $auth_instructions, 0 );
+						} else {
+							$order->add_order_note( __( 'Payment processed successfully. ', 'woocommerce-paymentsense' ) . $message, 0 );
+						}
+						$error_msg = '';
+						$this->set_success();
+						break;
+					case 'failed':
+						$order->update_status( 'failed', $auth_warning . __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message );
+						$error_msg = __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message . '<br />' .
+							__( 'Please check your card details and try again.', 'woocommerce-paymentsense' );
+						$this->set_success();
+						break;
+					case 'unsupported':
+					default:
+						$order->update_status( 'failed', __( 'Payment failed due to unknown or unsupported payment status. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.' );
+						$error_msg = __( 'An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.';
+						$this->set_error( self::MSG_UNSUPPORTED_STATUS );
+						break;
+				}
+
+				update_post_meta( (int) $order->get_id(), 'PaymentStatus', $transaction_status );
+				update_post_meta( (int) $order->get_id(), 'CustomerErrorMsg', $error_msg );
+			} catch ( Exception $exception ) {
+				$this->set_error(
+					sprintf(
+						self::MSG_EXCEPTION,
+						$exception->getMessage(),
+						$order_id
+					)
+				);
 			}
-			switch ( $transaction_status ) {
-				case 'success':
-					$order->payment_complete();
-					$order->add_order_note( __( 'Payment Successful: ', 'woocommerce-paymentsense' ) . $message, 0 );
-					$location = wc_get_endpoint_url( 'order-received', $order_id, $order->get_checkout_order_received_url() );
-					break;
-				case 'failed':
-					$order->update_status( 'failed', __( 'Payment Failed due to: ', 'woocommerce-paymentsense' ) . $message );
-					wc_add_notice(
-						__( 'Payment Failed due to: ', 'woocommerce-paymentsense' ) . $message . '<br />' .
-						__( 'Please check your card details and try again.', 'woocommerce-paymentsense' ),
-						'error'
-					);
-					$location = wc_get_endpoint_url( 'order-received', $order_id, $order->get_checkout_payment_url( false ) );
-					break;
+			$this->output_response();
+			exit;
+		}
+
+		/**
+		 * Processes the customer redirect of the SERVER result delivery method
+		 */
+		public function process_server_customer_redirect() {
+			try {
+				$order_id = $this->get_http_var( 'OrderID' );
+				if ( empty( $order_id ) ) {
+					$this->output_message( __( 'Order ID is empty.', 'woocommerce-paymentsense' ) );
+					exit;
+				}
+
+				$location = null;
+				$order    = new WC_Order( $order_id );
+
+				$transaction_status = get_post_meta( $order->get_id(), 'PaymentStatus', true );
+				$error_msg          = get_post_meta( $order->get_id(), 'CustomerErrorMsg', true );
+
+				switch ( $transaction_status ) {
+					case 'success':
+						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
+						break;
+					case 'failed':
+					case 'unsupported':
+					default:
+						wc_add_notice( $error_msg, 'error' );
+						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+						break;
+				}
+
+				wp_safe_redirect( $location );
+			} catch ( Exception $exception ) {
+				$message = sprintf(
+					__( 'An error occurred while processing order#%1$s. Error message: %2$s', 'woocommerce-paymentsense' ),
+					$this->get_http_var( 'OrderID' ),
+					$exception->getMessage()
+				);
+				$this->output_message( $message );
+				exit;
 			}
-			wp_safe_redirect( $location );
+		}
+
+		/**
+		 * Processes the response of the POST result delivery method
+		 */
+		public function process_post_response() {
+			try {
+				$order_id = $this->get_http_var( 'OrderID' );
+				if ( empty( $order_id ) ) {
+					$this->output_message( __( 'Order ID is empty.', 'woocommerce-paymentsense' ) );
+					exit;
+				}
+
+				$location  = null;
+				$message   = $this->get_http_var( 'Message' );
+				$cross_ref = $this->get_http_var( 'CrossReference' );
+				$order     = new WC_Order( $order_id );
+
+				$auth_warning = ! $this->authenticated
+					? __(
+						'WARNING: The authenticity of the status of this transaction cannot be confirmed automatically! Please check the status at the MMS. ',
+						'woocommerce-paymentsense'
+					)
+					: '';
+
+				update_post_meta( (int) $order->get_id(), 'CrossRef', $this->get_http_var( 'CrossReference' ) );
+				switch ( $this->get_http_var( 'StatusCode' ) ) {
+					case PS_TRX_RESULT_SUCCESS:
+						$transaction_status = 'success';
+						break;
+					case PS_TRX_RESULT_REFERRED:
+						$transaction_status = 'failed';
+						break;
+					case PS_TRX_RESULT_DECLINED:
+						$transaction_status = 'failed';
+						break;
+					case PS_TRX_RESULT_DUPLICATE:
+						if ( PS_TRX_RESULT_SUCCESS === wc_get_post_data_by_key( 'PreviousStatusCode' ) ) {
+							$transaction_status = 'success';
+						} else {
+							$transaction_status = 'failed';
+						}
+						break;
+					case PS_TRX_RESULT_FAILED:
+						$transaction_status = 'failed';
+						break;
+					default:
+						$transaction_status = 'unsupported';
+						break;
+				}
+
+				switch ( $transaction_status ) {
+					case 'success':
+						$order->payment_complete();
+						if ( ! $this->authenticated ) {
+							$auth_instructions  = sprintf(
+								__( 'Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. ', 'woocommerce-paymentsense' ),
+								$cross_ref,
+								$message
+							);
+							$auth_instructions .= __( 'Once the transaction status and authentication code are confirmed set the order status to "Processing" and process the order normally. ', 'woocommerce-paymentsense' );
+							$order->update_status( 'on-hold', $auth_warning );
+							$order->add_order_note( $auth_instructions, 0 );
+						} else {
+							$order->add_order_note( __( 'Payment processed successfully. ', 'woocommerce-paymentsense' ) . $message, 0 );
+						}
+
+						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
+						break;
+					case 'failed':
+						$order->update_status( 'failed', $auth_warning . __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message );
+						wc_add_notice(
+							__( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message . '<br />' .
+							__( 'Please check your card details and try again.', 'woocommerce-paymentsense' ),
+							'error'
+						);
+						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+						break;
+					case 'unsupported':
+					default:
+						$order->update_status( 'failed', __( 'Payment failed due to unknown or unsupported payment status. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.' );
+						wc_add_notice(
+							__( 'An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.',
+							'error'
+						);
+						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+						break;
+				}
+				wp_safe_redirect( $location );
+			} catch ( Exception $exception ) {
+				$message = sprintf(
+					__( 'An error occurred while processing order#%1$s. Error message: %2$s', 'woocommerce-paymentsense' ),
+					$this->get_http_var( 'OrderID' ),
+					$exception->getMessage()
+				);
+				$this->output_message( $message );
+				exit;
+			}
+		}
+
+		/**
+		 * Sets the success response message and status code
+		 */
+		protected function set_success() {
+			$this->set_response( self::STATUS_CODE_OK, self::MSG_SUCCESS );
+		}
+
+		/**
+		 * Sets the error response message and status code
+		 *
+		 * @param string $message Response message.
+		 */
+		protected function set_error( $message ) {
+			$this->set_response( self::STATUS_CODE_ERROR, $message );
+		}
+
+		/**
+		 * Sets the response variables
+		 *
+		 * @param string $status_code Response status code.
+		 * @param string $message Response message.
+		 */
+		protected function set_response( $status_code, $message ) {
+			$this->response_vars['status_code'] = $status_code;
+			$this->response_vars['message']     = $message;
+		}
+
+		/**
+		 * Outputs the response and exits
+		 */
+		protected function output_response() {
+			// @codingStandardsIgnoreLine
+			echo "StatusCode={$this->response_vars['status_code']}&Message={$this->response_vars['message']}";
+			exit;
 		}
 	}
 }

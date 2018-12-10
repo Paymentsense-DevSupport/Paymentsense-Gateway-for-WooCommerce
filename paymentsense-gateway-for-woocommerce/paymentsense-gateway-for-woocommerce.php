@@ -4,16 +4,16 @@
  *
  * Plugin Name:          Paymentsense Gateway for WooCommerce
  * Description:          Extends WooCommerce by taking payments via Paymentsense
- * Version:              3.0.4
+ * Version:              3.0.5
  * Author:               Paymentsense
  * Author URI:           http://www.paymentsense.co.uk/
  * License:              GNU General Public License v3.0
  * License URI:          http://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:          woocommerce-paymentsense
  * Requires at least:    4.4
- * Tested up to:         4.9.6
+ * Tested up to:         4.9.8
  * WC requires at least: 3.0.9
- * WC tested up to:      3.4.2
+ * WC tested up to:      3.4.5
  *
  * @package WooCommerce_Paymentsense_Gateway
  * @wordpress-plugin
@@ -48,7 +48,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 
 			require_once plugin_dir_path( __FILE__ ) . 'includes/helper-iso-codes.php';
 			require_once plugin_dir_path( __FILE__ ) . 'includes/paymentsense-defines.php';
-			require_once plugin_dir_path( __FILE__ ) . 'includes/class-paymentsense-lib.php';
+			require_once plugin_dir_path( __FILE__ ) . 'includes/class-paymentsense-base.php';
 			require_once plugin_dir_path( __FILE__ ) . 'includes/class-wc-paymentsense-hosted.php';
 			require_once plugin_dir_path( __FILE__ ) . 'includes/class-wc-paymentsense-direct.php';
 

@@ -79,6 +79,12 @@ msgstr "Sale"
 msgid "Pre-Auth"
 msgstr "Pre-Auth"
 
+msgid "Result Delivery Method:"
+msgstr "Result Delivery Method:"
+
+msgid "The Server Result Method determines how the transaction results are delivered back to the WooCommerce store."
+msgstr "The Server Result Method determines how the transaction results are delivered back to the WooCommerce store."
+
 msgid "Accept American Express?"
 msgstr "Accept American Express?"
 
@@ -148,8 +154,8 @@ msgstr "Define the Country as a Mandatory field on the Payment form."
 msgid "Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment."
 msgstr "Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment."
 
-msgid "Pay via Paymentsense"
-msgstr "Pay via Paymentsense"
+msgid "Click here if you are not redirected within 10 seconds..."
+msgstr "Click here if you are not redirected within 10 seconds..."
 
 msgid "Cancel order &amp; restore cart"
 msgstr "Cancel order &amp; restore cart"
@@ -225,3 +231,36 @@ msgstr "The following incompatible plugin(s) is(are) found: "
 
 msgid "Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts."
 msgstr "Please note that the list above includes confirmed conflicting WordPress plugins with the Paymentsense plugin only. The absence of reported incompatible plugins should not be considered as an indicator for absence of incompatibilities or conflicts."
+
+msgid "Error message: "
+msgstr "Error message: "
+
+msgid "Unsupported Result Delivery Method."
+msgstr "Unsupported Result Delivery Method."
+
+msgid "Order ID is empty."
+msgstr "Order ID is empty."
+
+msgid "WARNING: The authenticity of the status of this transaction cannot be confirmed automatically! Please check the status at the MMS. "
+msgstr "WARNING: The authenticity of the status of this transaction cannot be confirmed automatically! Please check the status at the MMS. "
+
+msgid "Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. "
+msgstr "Please log into your account at the MMS and check that transaction %1$s is processed with status SUCCESS and the message: %2$s. "
+
+msgid "Once the transaction status and authentication code are confirmed set the order status to \"Processing\" and process the order normally. "
+msgstr "Once the transaction status and authentication code are confirmed set the order status to \"Processing\" and process the order normally. "
+
+msgid "Payment processed successfully. "
+msgstr "Payment processed successfully. "
+
+msgid "Payment failed due to: "
+msgstr "Payment failed due to: "
+
+msgid "Payment failed due to unknown or unsupported payment status. Payment Status: "
+msgstr "Payment failed due to unknown or unsupported payment status. Payment Status: "
+
+msgid "An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: "
+msgstr "An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: "
+
+msgid "An error occurred while processing order#%1$s. Error message: %2$s"
+msgstr "An error occurred while processing order#%1$s. Error message: %2$s"

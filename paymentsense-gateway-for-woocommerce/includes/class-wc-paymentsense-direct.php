@@ -19,9 +19,9 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 	/**
 	 * WC_Paymentsense_Direct class.
 	 *
-	 * @extends Paymentsense_Lib
+	 * @extends Paymentsense_Base
 	 */
-	class WC_Paymentsense_Direct extends Paymentsense_Lib {
+	class WC_Paymentsense_Direct extends Paymentsense_Base {
 		/**
 		 * Payment method ID
 		 *
@@ -35,6 +35,13 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 		 * @var string
 		 */
 		public $method_title = 'Paymentsense Direct';
+
+		/**
+		 * Payment method description
+		 *
+		 * @var string
+		 */
+		public $method_description = 'Accept payments from Credit/Debit cards through Paymentsense Direct';
 
 		/**
 		 * Specifies whether the payment method shows fields on the checkout
@@ -152,6 +159,26 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'default'     => 'no',
 					'desc_tip'    => true,
 				),
+
+				/*
+				 * // TODO: Implementation of removal of this code
+				 * Duplicate Delay Seetings. Started but postponed.
+				'gateway_delay_initial'    => array(
+					'title'       => __( 'Duplicate Delay (Initial):', 'woocommerce-paymentsense' ),
+					'type'        => 'text',
+					'description' => __( 'The amount of time in seconds that the initial (card details) transactions with same OrderID and CardNumber should be rejected.', 'woocommerce-paymentsense' ),
+					'default'     => 60,
+					'desc_tip'    => true,
+				),
+
+				'gateway_delay_crossref'   => array(
+					'title'       => __( 'Duplicate Delay (Refunds):', 'woocommerce-paymentsense' ),
+					'type'        => 'text',
+					'description' => __( 'The amount of time in seconds that the cross-reference (refund) transactions on same CrossReference should be rejected.', 'woocommerce-paymentsense' ),
+					'default'     => 60,
+					'desc_tip'    => true,
+				),
+				*/
 			);
 		}
 
@@ -288,9 +315,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'Connection: close',
 				);
 				$xml     = '<?xml version="1.0" encoding="utf-8"?>
-                        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                            xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                             <soap:Body>
                                 <CardDetailsTransaction xmlns="https://www.thepaymentgateway.net/">
                                     <PaymentMessage>
@@ -429,8 +454,12 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 						'error'
 					);
 				}
-			} catch ( Exception $ex ) {
-				$order->update_status( 'failed', __( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' ) );
+			} catch ( Exception $exception ) {
+				$order->update_status(
+					'failed',
+					__( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' ) .
+					__( 'Error message: ', 'woocommerce-paymentsense' ) . $exception->getMessage()
+				);
 				wc_add_notice(
 					__( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' ) .
 					__( 'Please contact Customer Support.', 'woocommerce-paymentsense' ),
@@ -531,9 +560,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				'Connection: close',
 			);
 			$xml     = '<?xml version="1.0" encoding="utf-8"?>
-                    <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                    <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                         <soap:Body>
                             <ThreeDSecureAuthentication xmlns="https://www.thepaymentgateway.net/">
                                 <ThreeDSecureMessage>

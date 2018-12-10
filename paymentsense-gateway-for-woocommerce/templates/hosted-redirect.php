@@ -19,9 +19,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 <p>
 	<?php echo esc_html( $title ); ?>
 </p>
-<p>
-	<img src="<?php echo esc_url( $logo ); ?>" />
-</p>
 <form action="<?php echo esc_url( $paymentsense_adr ); ?>" method="post" id="paymentsense_payment_form" target="_top">
 	<?php
 	foreach ( $arguments as $key => $value ) {
@@ -30,11 +27,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php
 	}
 	?>
-        <!-- Button Fallback -->
-        <div class="payment_buttons">
-            <input type="submit" class="button alt" id="submit_paymentsense_payment_form" value="<?php echo __( 'Pay via Paymentsense', 'woocommerce-paymentsense' ); ?>" />
-            <a class="button cancel" href="<?php esc_url( $cancel_url ); ?>"><?php echo __( 'Cancel order &amp; restore cart', 'woocommerce-paymentsense' ); ?></a>
-        </div>
+	<!-- Button Fallback -->
+	<div class="payment_buttons">
+		<input type="submit" class="button alt" id="submit_paymentsense_payment_form" value="<?php esc_html_e( 'Click here if you are not redirected within 10 seconds...', 'woocommerce-paymentsense' ); ?>" />
+	</div>
 </form>
 <script type="text/javascript">
 	jQuery(function(){

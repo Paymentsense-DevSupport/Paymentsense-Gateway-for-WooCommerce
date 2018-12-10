@@ -1,13 +1,29 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.4
+Paymentsense Gateway for WooCommerce 3.0.5
+
+
+## [3.0.5] - 2018-09-26
+### Added
+- SERVER result delivery method (Paymentsense Hosted)
+- Method description (Paymentsense Direct)
+
+### Changed
+- "On Hold" order status when a non-authenticated (Invalid Hash Digest) response from the gateway is received (Paymentsense Hosted)
+- Redirect to the Hosted Payment Form (Paymentsense Hosted)
+
+### Removed
+- Sanity check of the POST parameters of the responses from the gateway (Paymentsense Hosted)
+
 
 ## [3.0.4] - 2018-06-08
 ### Added
 - Check for confirmed incompatible WordPress plugins with the Paymentsense plugin (currently "WooCommerce Sequential Order Numbers")
 
+
 ## [3.0.3] - 2018-03-21
 ### Fixed
 - Fix broken image paths
+
 
 ## [3.0.2] - 2018-03-21
 ### Added
@@ -16,9 +32,11 @@ Paymentsense Gateway for WooCommerce 3.0.4
 ### Fixed
 - Fix the submission of client data to the gateway
 
+
 ## [3.0.1] - 2018-02-27
 ### Changed
 - Update the readme file
+
 
 ## [3.0.0] - 2018-02-09
 ### Added

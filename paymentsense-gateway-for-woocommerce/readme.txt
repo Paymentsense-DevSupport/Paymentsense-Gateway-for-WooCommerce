@@ -2,12 +2,10 @@
 
 Tags: paymentsense, payments
 Requires at least: 4.4
-Tested up to: 4.9.6
-Stable tag: 3.0.4
+Tested up to: 4.9.8
+Stable tag: 3.0.5
 Requires PHP: 5.6.0
-
 License: GPLv3
-
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 Paymentsense is a plugin that extends WooCommerce, allowing you to take payments via Paymentsense.
@@ -32,8 +30,8 @@ Direct on the other hand means that during the checkout process the customer ent
 = Minimum Requirements =
 
 * PHP version 5.6.0 or greater
-* WordPress 4.4+
-* WooCommerce 3.x (tested up to 3.4.2)
+* WordPress 4.4+ (tested up to 4.9.8)
+* WooCommerce 3.x (tested up to 3.4.5)
 * PCI-certified server using SSL/TLS in order to use the Direct Method
 
 = Plugin Installation =
@@ -131,8 +129,16 @@ The usage of the Paymentsense Direct Gateway involves the following additional s
 
 == Changelog ==
 
-## [3.0.4] - 2018-06-08
+## [3.0.5] - 2018-09-26
 ### Added
-- Check for confirmed incompatible WordPress plugins with the Paymentsense plugin (currently "WooCommerce Sequential Order Numbers")
+- SERVER result delivery method (Paymentsense Hosted)
+- Method description (Paymentsense Direct)
+
+### Changed
+- "On Hold" order status when a non-authenticated (Invalid Hash Digest) response from the gateway is received (Paymentsense Hosted)
+- Redirect to the Hosted Payment Form (Paymentsense Hosted)
+
+### Removed
+- Sanity check of the POST parameters of the responses from the gateway (Paymentsense Hosted)
 
 For information on the changes in the previous versions, see the changelog.txt file.
