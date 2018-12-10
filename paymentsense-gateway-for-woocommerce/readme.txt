@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 4.9.8
-Stable tag: 3.0.8
+Stable tag: 3.0.9
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -32,7 +32,7 @@ Direct on the other hand means that during the checkout process the customer ent
 
 * PHP version 5.6.0 or greater
 * WordPress 4.4+ (tested up to 4.9.8)
-* WooCommerce 3.x (tested up to 3.5.1). Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin.
+* WooCommerce 3.x (tested up to 3.5.2). Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin.
 * PCI-certified server using SSL/TLS in order to use the Direct Method
 
 = Plugin Installation =
@@ -115,6 +115,6 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.8] - 2018-12-06
+## [3.0.9] - 2018-12-07
 ### Removed
-- Check whether the store is configured to use a secure connection based on the woocommerce_force_ssl_checkout setting (Paymentsense Direct)
+- Warning regarding the WooCommerce 3.5.x bug ("we do not have enough ... in stock to fulfill your order") which if fixed in WooCommerce 3.5.2

@@ -663,8 +663,9 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @return  string
 		 */
 		public static function get_warning_message() {
-			return version_compare( WC()->version, '3.5.0', '>=' )
-				? __( 'Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin. The behaviour of the bug consists in the appearance of the error message "Sorry, we do not have enough "..." in stock to fulfill your order (0 available)" on failed payments. See https://wordpress.org/support/topic/customer-payment-page-checking-stock-even-if-stock-management-is-disabled/', 'woocommerce-paymentsense' )
+			return ( version_compare( WC()->version, '3.5.0', '>=' ) &&
+					version_compare( WC()->version, '3.5.1', '<=' ) )
+				? __( 'Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin. Please consider updating WooCommerce.', 'woocommerce-paymentsense' )
 				: '';
 		}
 	}

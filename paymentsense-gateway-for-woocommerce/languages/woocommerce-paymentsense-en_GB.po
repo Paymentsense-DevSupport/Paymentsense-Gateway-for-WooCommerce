@@ -265,5 +265,5 @@ msgstr "As a result of that Paymentsense Gateway for WooCommerce is deactivated.
 msgid "&laquo; Go Back"
 msgstr "&laquo; Go Back"
 
-msgid "Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin. The behaviour of the bug consists in the appearance of the error message \"Sorry, we do not have enough \"...\" in stock to fulfill your order (0 available)\" on failed payments. See https://wordpress.org/support/topic/customer-payment-page-checking-stock-even-if-stock-management-is-disabled/"
-msgstr "Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin. The behaviour of the bug consists in the appearance of the error message \"Sorry, we do not have enough \"...\" in stock to fulfill your order (0 available)\" on failed payments. See https://wordpress.org/support/topic/customer-payment-page-checking-stock-even-if-stock-management-is-disabled/"
+msgid "Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin. Please consider updating WooCommerce."
+msgstr "Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin. Please consider updating WooCommerce."
