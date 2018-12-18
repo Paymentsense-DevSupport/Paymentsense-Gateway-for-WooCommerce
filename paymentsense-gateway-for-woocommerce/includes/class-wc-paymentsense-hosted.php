@@ -410,6 +410,10 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		 * Processes the payment gateway response
 		 */
 		public function process_gateway_response() {
+			if ( $this->is_info_request() ) {
+				$this->process_info_request();
+			}
+
 			switch ( $this->get_option( 'gateway_result_delivery' ) ) {
 				case 'POST':
 					$this->authenticated = $this->is_hash_digest_valid( self::REQ_NOTIFICATION );

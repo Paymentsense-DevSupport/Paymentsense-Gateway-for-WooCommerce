@@ -89,6 +89,23 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		);
 
 		/**
+		 * Plugin Data
+		 *
+		 * @var array
+		 */
+		protected $plugin_data = array();
+
+		/**
+		 * Supported content types of the output of the module information
+		 *
+		 * @var array
+		 */
+		protected $content_types = array(
+			'json' => TYPE_APPLICATION_JSON,
+			'text' => TYPE_TEXT_PLAIN,
+		);
+
+		/**
 		 * Paymentsense Gateway Class Constructor
 		 */
 		public function __construct() {
@@ -108,11 +125,10 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$this->gateway_transaction_type = $this->get_option( 'gateway_transaction_type' );
 			$this->amex_accepted            = 'yes' === $this->settings['amex_accepted'] ? 'TRUE' : 'FALSE';
 
-			// Sets the icon (card logos).
-			$card_logos = ( 'TRUE' === $this->amex_accepted ) ? PS_IMG_CARDS_WITH_AMEX : PS_IMG_CARDS_WITHOUT_AMEX;
+			// Sets the icon (logo).
 			$this->icon = apply_filters(
 				'woocommerce_' . $this->id . '_icon',
-				$card_logos
+				PS_IMG_LOGO
 			);
 
 			// Adds refunds support.
@@ -667,6 +683,167 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					version_compare( WC()->version, '3.5.1', '<=' ) )
 				? __( 'Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin. Please consider updating WooCommerce.', 'woocommerce-paymentsense' )
 				: '';
+		}
+
+		/**
+		 * Checks whether the request is for plugin information
+		 *
+		 * @return  bool
+		 */
+		protected function is_info_request() {
+			return 'info' === $this->get_http_var( 'action', '' );
+		}
+
+		/**
+		 * Processes the request for plugin information
+		 */
+		protected function process_info_request() {
+			if ( ! function_exists( 'get_plugin_data' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+
+			if ( function_exists( 'get_plugin_data' ) ) {
+				$plugin_file       = '/paymentsense-gateway-for-woocommerce/paymentsense-gateway-for-woocommerce.php';
+				$this->plugin_data = get_plugin_data( WP_PLUGIN_DIR . $plugin_file );
+			}
+
+			$info = array(
+				'Module Name'              => $this->get_module_name(),
+				'Module Installed Version' => $this->get_module_installed_version(),
+				'Module Latest Version'    => $this->get_module_latest_version(),
+				'WordPress Version'        => $this->get_wp_version(),
+				'WooCommerce Version'      => $this->get_wc_version(),
+				'PHP Version'              => $this->get_php_version(),
+			);
+			$this->output_info( $info );
+		}
+
+		/**
+		 * Outputs plugin information
+		 *
+		 * @param array $info Module information.
+		 */
+		private function output_info( $info ) {
+			$output       = $this->get_http_var( 'output', 'text' );
+			$content_type = array_key_exists( $output, $this->content_types )
+				? $this->content_types[ $output ]
+				: TYPE_TEXT_PLAIN;
+
+			switch ( $content_type ) {
+				case TYPE_APPLICATION_JSON:
+					// @codingStandardsIgnoreLine
+					$body = json_encode( $info );
+					break;
+				case TYPE_TEXT_PLAIN:
+				default:
+					$body = $this->convert_array_to_string( $info );
+					break;
+			}
+
+			// @codingStandardsIgnoreStart
+			@header( 'Cache-Control: max-age=0, must-revalidate, no-cache, no-store', true );
+			@header( 'Pragma: no-cache', true );
+			@header( 'Content-Type: '. $content_type, true );
+			echo $body;
+			// @codingStandardsIgnoreEnd
+			exit;
+		}
+
+		/**
+		 * Converts an array to string
+		 *
+		 * @param array $arr An associative array.
+		 * @return string
+		 */
+		private function convert_array_to_string( $arr ) {
+			$result = '';
+			foreach ( $arr as $key => $value ) {
+				if ( '' !== $result ) {
+					$result .= PHP_EOL;
+				}
+				$result .= $key . ': ' . $value;
+			}
+			return $result;
+		}
+
+		/**
+		 * Gets module name
+		 *
+		 * @return string
+		 */
+		private function get_module_name() {
+			return array_key_exists( 'Name', $this->plugin_data )
+				? $this->plugin_data['Name']
+				: '';
+		}
+
+		/**
+		 * Gets module installed version
+		 *
+		 * @return string
+		 */
+		private function get_module_installed_version() {
+			return array_key_exists( 'Version', $this->plugin_data )
+				? $this->plugin_data['Version']
+				: '';
+		}
+
+		/**
+		 * Gets module latest version
+		 *
+		 * @return string
+		 */
+		private function get_module_latest_version() {
+			$result = 'N/A';
+
+			if ( ! function_exists( 'plugins_api' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+			}
+
+			if ( function_exists( 'plugins_api' ) ) {
+				$args = array(
+					'slug'   => 'paymentsense-gateway-for-woocommerce',
+					'fields' => array(
+						'version' => true,
+					),
+				);
+
+				$latest_plugin_info = plugins_api( 'plugin_information', $args );
+
+				if ( ! is_wp_error( $latest_plugin_info ) &&
+					property_exists( $latest_plugin_info, 'version' ) ) {
+					$result = $latest_plugin_info->version;
+				}
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Gets WordPress version
+		 *
+		 * @return string
+		 */
+		private function get_wp_version() {
+			return get_bloginfo( 'version' );
+		}
+
+		/**
+		 * Gets WooCommerce version
+		 *
+		 * @return string
+		 */
+		private function get_wc_version() {
+			return WC()->version;
+		}
+
+		/**
+		 * Gets PHP version
+		 *
+		 * @return string
+		 */
+		private function get_php_version() {
+			return phpversion();
 		}
 	}
 }

@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 5.0
-Stable tag: 3.0.10
+Stable tag: 3.0.11
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -115,7 +115,9 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.10] - 2018-12-10
+## [3.0.11] - 2018-12-18
+### Added
+- Module information reporting feature
+
 ### Changed
-- "Cancel order & restore cart" button on the 3D Secure authentication page changed as a text link (Paymentsense Direct)
-- "Tested up to" tag to 5.0
+- Logo

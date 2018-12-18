@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.10
+Paymentsense Gateway for WooCommerce 3.0.11
+
+
+## [3.0.11] - 2018-12-18
+### Added
+- Module information reporting feature
+
+### Changed
+- Logo
 
 
 ## [3.0.10] - 2018-12-10
