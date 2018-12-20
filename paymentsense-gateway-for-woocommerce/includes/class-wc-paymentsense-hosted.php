@@ -321,25 +321,23 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				/*
-				 * // TODO: Implementation of removal of this code
-				 * Duplicate Delay Seetings. Started but postponed.
-				'gateway_delay_initial'                => array(
-					'title'       => __( 'Duplicate Delay (Initial):', 'woocommerce-paymentsense' ),
-					'type'        => 'text',
-					'description' => __( 'The amount of time in seconds that the initial (card details) transactions with same OrderID and CardNumber should be rejected.', 'woocommerce-paymentsense' ),
-					'default'     => 60,
-					'desc_tip'    => true,
+				'troubleshooting_settings'             => array(
+					'title'       => __( 'Troubleshooting Settings', 'woocommerce-paymentsense' ),
+					'type'        => 'title',
+					'description' => __( 'Settings related to troubleshooting and diagnostics of the plugin.', 'woocommerce-paymentsense' ),
 				),
 
-				'gateway_delay_crossref'               => array(
-					'title'       => __( 'Duplicate Delay (Refunds):', 'woocommerce-paymentsense' ),
-					'type'        => 'text',
-					'description' => __( 'The amount of time in seconds that the cross-reference (refund) transactions on same CrossReference should be rejected.', 'woocommerce-paymentsense' ),
-					'default'     => 60,
+				'extended_plugin_info'                 => array(
+					'title'       => __( 'Allow extended information requests:', 'woocommerce-paymentsense' ),
+					'type'        => 'select',
+					'description' => __( 'Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting "Yes".', 'woocommerce-paymentsense' ),
+					'default'     => 'true',
 					'desc_tip'    => true,
+					'options'     => array(
+						'true'  => __( 'Yes', 'woocommerce-paymentsense' ),
+						'false' => __( 'No', 'woocommerce-paymentsense' ),
+					),
 				),
-				*/
 			);
 		}
 

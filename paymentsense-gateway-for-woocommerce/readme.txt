@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 5.0
-Stable tag: 3.0.11
+Stable tag: 3.0.12
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -115,9 +115,7 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.11] - 2018-12-18
+## [3.0.12] - 2018-12-20
 ### Added
-- Module information reporting feature
-
-### Changed
-- Logo
+- Dynamic gateway entry points configuration
+- Extended module information feature

@@ -160,25 +160,23 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'desc_tip'    => true,
 				),
 
-				/*
-				 * // TODO: Implementation of removal of this code
-				 * Duplicate Delay Seetings. Started but postponed.
-				'gateway_delay_initial'    => array(
-					'title'       => __( 'Duplicate Delay (Initial):', 'woocommerce-paymentsense' ),
-					'type'        => 'text',
-					'description' => __( 'The amount of time in seconds that the initial (card details) transactions with same OrderID and CardNumber should be rejected.', 'woocommerce-paymentsense' ),
-					'default'     => 60,
-					'desc_tip'    => true,
+				'troubleshooting_settings' => array(
+					'title'       => __( 'Troubleshooting Settings', 'woocommerce-paymentsense' ),
+					'type'        => 'title',
+					'description' => __( 'Settings related to troubleshooting and diagnostics of the plugin.', 'woocommerce-paymentsense' ),
 				),
 
-				'gateway_delay_crossref'   => array(
-					'title'       => __( 'Duplicate Delay (Refunds):', 'woocommerce-paymentsense' ),
-					'type'        => 'text',
-					'description' => __( 'The amount of time in seconds that the cross-reference (refund) transactions on same CrossReference should be rejected.', 'woocommerce-paymentsense' ),
-					'default'     => 60,
+				'extended_plugin_info'     => array(
+					'title'       => __( 'Allow extended information requests:', 'woocommerce-paymentsense' ),
+					'type'        => 'select',
+					'description' => __( 'Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting "Yes".', 'woocommerce-paymentsense' ),
+					'default'     => 'true',
 					'desc_tip'    => true,
+					'options'     => array(
+						'true'  => __( 'Yes', 'woocommerce-paymentsense' ),
+						'false' => __( 'No', 'woocommerce-paymentsense' ),
+					),
 				),
-				*/
 			);
 		}
 
@@ -360,16 +358,18 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
                             </soap:Body>
                         </soap:Envelope>';
 
-				$gateway_id         = 1;
+				$gateway_id         = 0;
 				$transattempt       = 1;
 				$soap_success       = false;
 				$transaction_status = 'failed';
 				$trx_message        = '';
 
-				while ( ! $soap_success && $gateway_id <= 3 && $transattempt <= 3 ) {
+				$gateways       = $this->get_gateway_entry_points();
+				$gateways_count = count( $gateways );
 
+				while ( ! $soap_success && $gateway_id < $gateways_count && $transattempt <= 3 ) {
 					$data = array(
-						'url'     => $this->get_gateway_url( $gateway_id ),
+						'url'     => $gateways[ $gateway_id ],
 						'headers' => $headers,
 						'xml'     => $xml,
 					);
@@ -512,6 +512,10 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 		 * Processes the 3D secure response
 		 */
 		public function process_3dsecure_response() {
+			if ( $this->is_info_request() ) {
+				$this->process_info_request();
+			}
+
 			$pares = wc_get_post_data_by_key( 'PaRes' );
 			$md    = wc_get_post_data_by_key( 'MD' );
 
@@ -574,14 +578,15 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
                         </soap:Body>
                     </soap:Envelope>';
 
-			$gateway_id   = 1;
+			$gateway_id   = 0;
 			$transattempt = 1;
-			$soap_success = false;
 
-			while ( ! $soap_success && $gateway_id <= 3 && $transattempt <= 3 ) {
+			$gateways       = $this->get_gateway_entry_points();
+			$gateways_count = count( $gateways );
 
+			while ( $gateway_id < $gateways_count && $transattempt <= 3 ) {
 				$data = array(
-					'url'     => $this->get_gateway_url( $gateway_id ),
+					'url'     => $gateways[ $gateway_id ],
 					'headers' => $headers,
 					'xml'     => $xml,
 				);
@@ -592,9 +597,6 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					if ( is_numeric( $trx_status_code ) ) {
 						// request was processed correctly.
 						if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
-							// set success flag so it will not run the request again.
-							$soap_success = true;
-
 							$trx_message = $this->get_xml_value( 'Message', $response, '.+' );
 							$auth_code   = $this->get_xml_value( 'AuthCode', $response, '.+' );
 							$crossref    = $this->get_xml_cross_reference( $response );

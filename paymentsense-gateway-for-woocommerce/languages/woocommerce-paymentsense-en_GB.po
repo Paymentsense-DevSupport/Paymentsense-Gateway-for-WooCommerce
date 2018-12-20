@@ -267,3 +267,15 @@ msgstr "&laquo; Go Back"
 
 msgid "Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin. Please consider updating WooCommerce."
 msgstr "Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin. Please consider updating WooCommerce."
+
+msgid "Troubleshooting Settings"
+msgstr "Troubleshooting Settings"
+
+msgid "Settings related to troubleshooting and diagnostics of the plugin."
+msgstr "Settings related to troubleshooting and diagnostics of the plugin."
+
+msgid "Allow extended information requests:"
+msgstr "Allow extended information requests:"
+
+msgid "Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting \"Yes\"."
+msgstr "Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting \"Yes\"."

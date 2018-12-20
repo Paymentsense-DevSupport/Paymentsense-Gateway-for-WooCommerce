@@ -31,6 +31,23 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		const REQ_CUSTOMER_REDIRECT = '1';
 
 		/**
+		 * Default Payment Gateway Entry Points
+		 *
+		 * @var array
+		 */
+		protected static $default_gateway_entry_points = array(
+			'https://gw1.paymentsensegateway.com:4430',
+			'https://gw2.paymentsensegateway.com:4430',
+		);
+
+		/**
+		 * Payment Gateway Entry Points
+		 *
+		 * @var array
+		 */
+		protected static $gateway_entry_points = array();
+
+		/**
 		 * Payment Gateway Merchant ID
 		 *
 		 * @var string
@@ -126,10 +143,10 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$this->amex_accepted            = 'yes' === $this->settings['amex_accepted'] ? 'TRUE' : 'FALSE';
 
 			// Sets the icon (logo).
-			$this->icon = apply_filters(
-				'woocommerce_' . $this->id . '_icon',
-				PS_IMG_LOGO
-			);
+			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', PS_IMG_LOGO );
+
+			// Initialises gateway entry points.
+			$this->init_gateway_entry_points();
 
 			// Adds refunds support.
 			array_push( $this->supports, 'refunds' );
@@ -145,15 +162,31 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Gets payment gateway URL
-		 *
-		 * @param int $gateway_id Gateway ID.
-		 * @return  string
+		 * Initialises payment gateway entry points by performing the GetGatewayEntryPoints request if needed
 		 */
-		protected function get_gateway_url( $gateway_id ) {
-			$domain = 'paymentsensegateway.com';
-			$port   = 4430;
-			return 'https://gw' . $gateway_id . '.' . $domain . ':' . $port . '/';
+		protected function init_gateway_entry_points() {
+			if ( empty( self::$gateway_entry_points ) ) {
+				$this->set_gateway_entry_points();
+			}
+		}
+
+		/**
+		 * Sets payment gateway entry points
+		 */
+		protected function set_gateway_entry_points() {
+			$gateway_entry_points       = $this->retrieve_gateway_entry_points();
+			self::$gateway_entry_points = is_array( $gateway_entry_points ) && ! empty( $gateway_entry_points )
+				? $gateway_entry_points
+				: self::$default_gateway_entry_points;
+		}
+
+		/**
+		 * Gets payment gateway entry points
+		 */
+		protected function get_gateway_entry_points() {
+			return is_array( self::$gateway_entry_points ) && ! empty( self::$gateway_entry_points )
+				? self::$gateway_entry_points
+				: self::$default_gateway_entry_points;
 		}
 
 		/**
@@ -367,6 +400,21 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
+		 * Gets the value of the GatewayEntryPoint elements from an XML document
+		 *
+		 * @param string $xml XML document.
+		 *
+		 * @return array
+		 */
+		protected function get_xml_gateway_entry_points( $xml ) {
+			$result = array();
+			if ( preg_match_all( '#<GatewayEntryPoint EntryPointURL="(.+)" Metric="(.+)" />#iU', $xml, $matches ) ) {
+				$result = $matches[1];
+			}
+			return $result;
+		}
+
+		/**
 		 * Builds the fields for the hosted form as an associative array
 		 *
 		 * @param  WC_Order $order WooCommerce order object.
@@ -435,12 +483,14 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		/**
 		 * Performs cURL requests to the Paymentsense gateway
 		 *
-		 * @param array $data cURL data.
-		 * @param mixed $response the result or false on failure.
+		 * @param array  $data cURL data.
+		 * @param mixed  $response the result or false on failure.
+		 * @param mixed  $info last transfer information.
+		 * @param string $err_msg last transfer error message.
 		 *
 		 * @return int the error number or 0 if no error occurred
 		 */
-		protected function send_transaction( $data, &$response ) {
+		protected function send_transaction( $data, &$response, &$info = array(), &$err_msg = '' ) {
 			// @codingStandardsIgnoreStart
 			$ch = curl_init();
 			curl_setopt( $ch, CURLOPT_HEADER, false );
@@ -451,11 +501,92 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $ch, CURLOPT_ENCODING, 'UTF-8' );
 			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+			curl_setopt( $ch, CURLOPT_TIMEOUT, 12 );
 			$response = curl_exec( $ch );
 			$err_no   = curl_errno( $ch );
+			$err_msg  = curl_error( $ch );
+			$info     = curl_getinfo($ch);
 			curl_close( $ch );
 			// @codingStandardsIgnoreEnd
 			return $err_no;
+		}
+
+		/**
+		 * Retrieves the gateway entry points
+		 *
+		 *  @param array $diagnostic_info Last transfer diagnostic information.
+		 *
+		 * @return array|WP_Error
+		 */
+		public function retrieve_gateway_entry_points( &$diagnostic_info = array() ) {
+			$xml_data = array(
+				'MerchantID' => $this->gateway_merchant_id,
+				'Password'   => $this->gateway_password,
+			);
+			$headers  = array(
+				'SOAPAction:https://www.thepaymentgateway.net/GetGatewayEntryPoints',
+				'Content-Type: text/xml; charset = utf-8',
+				'Connection: close',
+			);
+			$xml      = '<?xml version="1.0" encoding="utf-8"?>
+                             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                                 <soap:Body>
+                                     <GetGatewayEntryPoints xmlns="https://www.thepaymentgateway.net/">
+                                         <GetGatewayEntryPointsMessage>
+                                             <MerchantAuthentication MerchantID="' . $xml_data['MerchantID'] . '" Password="' . $xml_data['Password'] . '" />
+                                         </GetGatewayEntryPointsMessage>
+                                     </GetGatewayEntryPoints>
+                                 </soap:Body>
+                             </soap:Envelope>';
+
+			$gateway_id      = 0;
+			$transattempt    = 1;
+			$attempt_no      = 0;
+			$soap_success    = false;
+			$result          = array();
+			$diagnostic_info = array();
+
+			$gateways       = $this->get_gateway_entry_points();
+			$gateways_count = count( $gateways );
+
+			while ( ! $soap_success && $gateway_id < $gateways_count && $transattempt <= 3 ) {
+				$data = array(
+					'url'     => $gateways[ $gateway_id ],
+					'headers' => $headers,
+					'xml'     => $xml,
+				);
+
+				$curl_errno = $this->send_transaction( $data, $response, $info, $curl_errmsg );
+				if ( 0 === $curl_errno ) {
+					$trx_status_code = $this->get_xml_value( 'StatusCode', $response, '[0-9]+' );
+
+					if ( is_numeric( $trx_status_code ) ) {
+						// request was processed correctly.
+						if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
+							// set success flag so it will not run the request again.
+							$soap_success = true;
+							$result       = $this->get_xml_gateway_entry_points( $response );
+
+						}
+					}
+				}
+
+				$diagnostic_info[ 'Connection attempt ' . ( ++$attempt_no ) ] = array(
+					'curl_errno'  => $curl_errno,
+					'curl_errmsg' => $curl_errmsg,
+					'response'    => $response,
+					'info'        => $info,
+				);
+
+				if ( $transattempt <= 2 ) {
+					$transattempt++;
+				} else {
+					$transattempt = 1;
+					$gateway_id++;
+				}
+			}
+			return $result;
 		}
 
 		/**
@@ -512,15 +643,18 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
                                  </soap:Body>
                              </soap:Envelope>';
 
-			$gateway_id         = 1;
+			$gateway_id         = 0;
 			$transattempt       = 1;
 			$soap_success       = false;
 			$transaction_status = 'failed';
 			$trx_message        = '';
 
-			while ( ! $soap_success && $gateway_id <= 3 && $transattempt <= 3 ) {
+			$gateways       = $this->get_gateway_entry_points();
+			$gateways_count = count( $gateways );
+
+			while ( ! $soap_success && $gateway_id < $gateways_count && $transattempt <= 3 ) {
 				$data = array(
-					'url'     => $this->get_gateway_url( $gateway_id ),
+					'url'     => $gateways[ $gateway_id ],
 					'headers' => $headers,
 					'xml'     => $xml,
 				);
@@ -549,13 +683,11 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				}
 			}
 
-			if ( 'success' === $transaction_status ) {
-				return true;
-			} elseif ( 'failed' === $transaction_status ) {
+			if ( 'success' !== $transaction_status ) {
 				return new WP_Error( 'refund_error', __( 'Refund was declined. ', 'woocommerce-paymentsense' ) . $trx_message );
 			}
 
-			return false;
+			return true;
 		}
 
 		/**
@@ -699,22 +831,33 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		protected function process_info_request() {
 			if ( ! function_exists( 'get_plugin_data' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+				if ( is_file( ABSPATH . 'wp-admin/includes/plugin.php' ) ) {
+					require_once ABSPATH . 'wp-admin/includes/plugin.php';
+				}
 			}
 
 			if ( function_exists( 'get_plugin_data' ) ) {
-				$plugin_file       = '/paymentsense-gateway-for-woocommerce/paymentsense-gateway-for-woocommerce.php';
-				$this->plugin_data = get_plugin_data( WP_PLUGIN_DIR . $plugin_file );
+				$ps_plugin_file    = '/paymentsense-gateway-for-woocommerce/paymentsense-gateway-for-woocommerce.php';
+				$this->plugin_data = get_plugin_data( WP_PLUGIN_DIR . $ps_plugin_file );
 			}
 
 			$info = array(
 				'Module Name'              => $this->get_module_name(),
 				'Module Installed Version' => $this->get_module_installed_version(),
-				'Module Latest Version'    => $this->get_module_latest_version(),
-				'WordPress Version'        => $this->get_wp_version(),
-				'WooCommerce Version'      => $this->get_wc_version(),
-				'PHP Version'              => $this->get_php_version(),
 			);
+
+			if ( ( 'true' === $this->get_http_var( 'extended_info', '' ) ) &&
+				( 'true' === $this->get_option( 'extended_plugin_info' ) ) ) {
+				$extended_info = array(
+					'Module Latest Version' => $this->get_module_latest_version(),
+					'WordPress Version'     => $this->get_wp_version(),
+					'WooCommerce Version'   => $this->get_wc_version(),
+					'PHP Version'           => $this->get_php_version(),
+					'Connectivity'          => $this->check_gateway_connection(),
+				);
+				$info          = array_merge( $info, $extended_info );
+			}
+
 			$this->output_info( $info );
 		}
 
@@ -752,16 +895,21 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		/**
 		 * Converts an array to string
 		 *
-		 * @param array $arr An associative array.
+		 * @param array  $arr An associative array.
+		 * @param string $ident Identation.
 		 * @return string
 		 */
-		private function convert_array_to_string( $arr ) {
-			$result = '';
+		private function convert_array_to_string( $arr, $ident = '' ) {
+			$result        = '';
+			$ident_pattern = '  ';
 			foreach ( $arr as $key => $value ) {
 				if ( '' !== $result ) {
 					$result .= PHP_EOL;
 				}
-				$result .= $key . ': ' . $value;
+				if ( is_array( $value ) ) {
+					$value = PHP_EOL . $this->convert_array_to_string( $value, $ident . $ident_pattern );
+				}
+				$result .= $ident . $key . ': ' . $value;
 			}
 			return $result;
 		}
@@ -844,6 +992,19 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		private function get_php_version() {
 			return phpversion();
+		}
+
+		/**
+		 * Checks the connection with the Paymentsense entry points
+		 *
+		 * @return array
+		 */
+		private function check_gateway_connection() {
+			$result = $this->retrieve_gateway_entry_points( $diagnostic_info );
+			return array(
+				'Gateway entry points' => $result,
+				'Connection info'      => $diagnostic_info,
+			);
 		}
 	}
 }
