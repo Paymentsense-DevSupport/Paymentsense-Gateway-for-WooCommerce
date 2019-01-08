@@ -274,6 +274,12 @@ msgstr "Troubleshooting Settings"
 msgid "Settings related to troubleshooting and diagnostics of the plugin."
 msgstr "Settings related to troubleshooting and diagnostics of the plugin."
 
+msgid "Disable communication on port 4430:"
+msgstr "Disable communication on port 4430:"
+
+msgid "In order to function normally the Paymentsense plugin performs outgoing connections to the Paymentsense gateway on port 4430 which is required to be open. In the case port 4430 on your server is closed you can still use the Paymentsense Hosted method with a limited functionality. Please note that by disabling the communication on port 4430 the online refund functionality will be disabled too. Recommended Setting \"No\". Please set to \"Yes\" only as a last resort when your server has port 4430 closed."
+msgstr "In order to function normally the Paymentsense plugin performs outgoing connections to the Paymentsense gateway on port 4430 which is required to be open. In the case port 4430 on your server is closed you can still use the Paymentsense Hosted method with a limited functionality. Please note that by disabling the communication on port 4430 the online refund functionality will be disabled too. Recommended Setting \"No\". Please set to \"Yes\" only as a last resort when your server has port 4430 closed."
+
 msgid "Allow extended information requests:"
 msgstr "Allow extended information requests:"
 

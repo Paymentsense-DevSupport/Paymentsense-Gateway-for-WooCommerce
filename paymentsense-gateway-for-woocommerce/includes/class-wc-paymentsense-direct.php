@@ -359,7 +359,8 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
                         </soap:Envelope>';
 
 				$gateway_id         = 0;
-				$transattempt       = 1;
+				$trans_attempt      = 1;
+				$max_attempts       = 3;
 				$soap_success       = false;
 				$transaction_status = 'failed';
 				$trx_message        = '';
@@ -367,7 +368,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				$gateways       = $this->get_gateway_entry_points();
 				$gateways_count = count( $gateways );
 
-				while ( ! $soap_success && $gateway_id < $gateways_count && $transattempt <= 3 ) {
+				while ( ! $soap_success && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
 					$data = array(
 						'url'     => $gateways[ $gateway_id ],
 						'headers' => $headers,
@@ -431,10 +432,10 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 						}
 					}
 
-					if ( $transattempt <= 2 ) {
-						$transattempt++;
+					if ( $trans_attempt < $max_attempts ) {
+						$trans_attempt++;
 					} else {
-						$transattempt = 1;
+						$trans_attempt = 1;
 						$gateway_id++;
 					}
 				}
@@ -578,13 +579,14 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
                         </soap:Body>
                     </soap:Envelope>';
 
-			$gateway_id   = 0;
-			$transattempt = 1;
+			$gateway_id    = 0;
+			$trans_attempt = 1;
+			$max_attempts  = 3;
 
 			$gateways       = $this->get_gateway_entry_points();
 			$gateways_count = count( $gateways );
 
-			while ( $gateway_id < $gateways_count && $transattempt <= 3 ) {
+			while ( $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
 				$data = array(
 					'url'     => $gateways[ $gateway_id ],
 					'headers' => $headers,
@@ -647,10 +649,10 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					}
 				}
 
-				if ( $transattempt <= 2 ) {
-					$transattempt++;
+				if ( $trans_attempt < $max_attempts ) {
+					$trans_attempt++;
 				} else {
-					$transattempt = 1;
+					$trans_attempt = 1;
 					$gateway_id++;
 				}
 			}

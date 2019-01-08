@@ -149,7 +149,9 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$this->init_gateway_entry_points();
 
 			// Adds refunds support.
-			array_push( $this->supports, 'refunds' );
+			if ( 'true' !== $this->settings['disable_comm_on_port_4430'] ) {
+				array_push( $this->supports, 'refunds' );
+			}
 		}
 
 		/**
@@ -491,24 +493,29 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @return int the error number or 0 if no error occurred
 		 */
 		protected function send_transaction( $data, &$response, &$info = array(), &$err_msg = '' ) {
-			// @codingStandardsIgnoreStart
-			$ch = curl_init();
-			curl_setopt( $ch, CURLOPT_HEADER, false );
-			curl_setopt( $ch, CURLOPT_HTTPHEADER, $data['headers'] );
-			curl_setopt( $ch, CURLOPT_POST, true );
-			curl_setopt( $ch, CURLOPT_URL, $data['url'] );
-			curl_setopt( $ch, CURLOPT_POSTFIELDS, $data['xml'] );
-			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-			curl_setopt( $ch, CURLOPT_ENCODING, 'UTF-8' );
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-			curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-			curl_setopt( $ch, CURLOPT_TIMEOUT, 12 );
-			$response = curl_exec( $ch );
-			$err_no   = curl_errno( $ch );
-			$err_msg  = curl_error( $ch );
-			$info     = curl_getinfo($ch);
-			curl_close( $ch );
-			// @codingStandardsIgnoreEnd
+			if ( 'true' === $this->settings['disable_comm_on_port_4430'] ) {
+				$err_no  = CURLE_ABORTED_BY_CALLBACK;
+				$err_msg = 'Communication Aborted. The communication on port 4430 is disabled at the plugin configuration settings.';
+			} else {
+				// @codingStandardsIgnoreStart
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_HEADER, false);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, $data['headers']);
+				curl_setopt($ch, CURLOPT_POST, true);
+				curl_setopt($ch, CURLOPT_URL, $data['url']);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $data['xml']);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+				$response = curl_exec($ch);
+				$err_no = curl_errno($ch);
+				$err_msg = curl_error($ch);
+				$info = curl_getinfo($ch);
+				curl_close($ch);
+				// @codingStandardsIgnoreEnd
+			}
 			return $err_no;
 		}
 
@@ -541,8 +548,9 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
                              </soap:Envelope>';
 
 			$gateway_id      = 0;
-			$transattempt    = 1;
+			$trans_attempt   = 1;
 			$attempt_no      = 0;
+			$max_attempts    = 2;
 			$soap_success    = false;
 			$result          = array();
 			$diagnostic_info = array();
@@ -550,7 +558,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$gateways       = $this->get_gateway_entry_points();
 			$gateways_count = count( $gateways );
 
-			while ( ! $soap_success && $gateway_id < $gateways_count && $transattempt <= 3 ) {
+			while ( ! $soap_success && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
 				$data = array(
 					'url'     => $gateways[ $gateway_id ],
 					'headers' => $headers,
@@ -579,10 +587,10 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					'info'        => $info,
 				);
 
-				if ( $transattempt <= 2 ) {
-					$transattempt++;
+				if ( $trans_attempt < $max_attempts ) {
+					$trans_attempt++;
 				} else {
-					$transattempt = 1;
+					$trans_attempt = 1;
 					$gateway_id++;
 				}
 			}
@@ -644,7 +652,8 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
                              </soap:Envelope>';
 
 			$gateway_id         = 0;
-			$transattempt       = 1;
+			$trans_attempt      = 1;
+			$max_attempts       = 3;
 			$soap_success       = false;
 			$transaction_status = 'failed';
 			$trx_message        = '';
@@ -652,7 +661,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$gateways       = $this->get_gateway_entry_points();
 			$gateways_count = count( $gateways );
 
-			while ( ! $soap_success && $gateway_id < $gateways_count && $transattempt <= 3 ) {
+			while ( ! $soap_success && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
 				$data = array(
 					'url'     => $gateways[ $gateway_id ],
 					'headers' => $headers,
@@ -675,10 +684,10 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 						}
 					}
 				}
-				if ( $transattempt <= 2 ) {
-					$transattempt++;
+				if ( $trans_attempt < $max_attempts ) {
+					$trans_attempt++;
 				} else {
-					$transattempt = 1;
+					$trans_attempt = 1;
 					$gateway_id++;
 				}
 			}

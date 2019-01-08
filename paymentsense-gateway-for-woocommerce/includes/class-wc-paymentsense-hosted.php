@@ -327,6 +327,18 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'description' => __( 'Settings related to troubleshooting and diagnostics of the plugin.', 'woocommerce-paymentsense' ),
 				),
 
+				'disable_comm_on_port_4430'            => array(
+					'title'       => __( 'Disable communication on port 4430:', 'woocommerce-paymentsense' ),
+					'type'        => 'select',
+					'description' => __( 'In order to function normally the Paymentsense plugin performs outgoing connections to the Paymentsense gateway on port 4430 which is required to be open. In the case port 4430 on your server is closed you can still use the Paymentsense Hosted method with a limited functionality. Please note that by disabling the communication on port 4430 the online refund functionality will be disabled too. Recommended Setting "No". Please set to "Yes" only as a last resort when your server has port 4430 closed.', 'woocommerce-paymentsense' ),
+					'default'     => 'false',
+					'desc_tip'    => true,
+					'options'     => array(
+						'true'  => __( 'Yes', 'woocommerce-paymentsense' ),
+						'false' => __( 'No', 'woocommerce-paymentsense' ),
+					),
+				),
+
 				'extended_plugin_info'                 => array(
 					'title'       => __( 'Allow extended information requests:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
@@ -338,6 +350,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 						'false' => __( 'No', 'woocommerce-paymentsense' ),
 					),
 				),
+
 			);
 		}
 

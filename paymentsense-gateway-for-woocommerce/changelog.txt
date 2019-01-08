@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.12
+Paymentsense Gateway for WooCommerce 3.0.13
+
+
+## [3.0.13] - 2019-01-07
+### Added
+- Ability to disable the communication on port 4430 (Paymentsense Hosted)
+
+### Changed
+- Number of attempts for retrieving gateway entry points configuration reduced to 2
 
 
 ## [3.0.12] - 2018-12-20
