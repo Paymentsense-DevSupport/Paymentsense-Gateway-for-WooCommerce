@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 5.0
-Stable tag: 3.0.13
+Stable tag: 3.0.14
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -19,7 +19,7 @@ In regards to taking payments online through your website, you have two options 
 
 Hosted means that during the checkout process the user is redirected to a page hosted by Paymentsense in order to enter their card details and finalise the payment and then is redirected back to your site for the order confirmation. This also has a lower PCI compliance level and has less technical requirements from the web server.
 
-Direct on the other hand means that during the checkout process the customer enters their card details directly onto your website. This has a higher level of PCI compliance and also requires port 4430 to be open as well as an active SSL certificate.
+Direct on the other hand means that during the checkout process the customer enters their card details directly onto your website. This has a higher level of PCI compliance and also requires an active SSL certificate.
 
 = Support =
 
@@ -33,6 +33,7 @@ Direct on the other hand means that during the checkout process the customer ent
 * PHP version 5.6.0 or greater
 * WordPress 4.4+ (tested up to 4.9.8)
 * WooCommerce 3.x (tested up to 3.5.2). Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin.
+* Open outbound port 4430 in order to use the Direct Method and for perform online refunds
 * PCI-certified server using SSL/TLS in order to use the Direct Method
 
 = Plugin Installation =
@@ -115,9 +116,10 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.13] - 2019-01-07
+## [3.0.14] - 2019-01-14
 ### Added
-- Ability to disable the communication on port 4430 (Paymentsense Hosted)
+- Gateway connectivity information on the payment methods settings pages
 
 ### Changed
-- Number of attempts for retrieving gateway entry points configuration reduced to 2
+- Configuration setting "Disable communication on port 4430" renamed to "Port 4430 is NOT open on my server (safe mode with refunds disabled)"
+- Number of attempts for retrieving gateway entry points configuration reduced to 1

@@ -113,6 +113,14 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		protected $plugin_data = array();
 
 		/**
+		 * Connection Information.
+		 * Used for troubleshooting and determining the connectivity with the gateway.
+		 *
+		 * @var array
+		 */
+		public $connection_info = array();
+
+		/**
 		 * Supported content types of the output of the module information
 		 *
 		 * @var array
@@ -145,9 +153,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			// Sets the icon (logo).
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', PS_IMG_LOGO );
 
-			// Initialises gateway entry points.
-			$this->init_gateway_entry_points();
-
 			// Adds refunds support.
 			if ( 'true' !== $this->settings['disable_comm_on_port_4430'] ) {
 				array_push( $this->supports, 'refunds' );
@@ -164,15 +169,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Initialises payment gateway entry points by performing the GetGatewayEntryPoints request if needed
-		 */
-		protected function init_gateway_entry_points() {
-			if ( empty( self::$gateway_entry_points ) ) {
-				$this->set_gateway_entry_points();
-			}
-		}
-
-		/**
 		 * Sets payment gateway entry points
 		 */
 		protected function set_gateway_entry_points() {
@@ -186,6 +182,11 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Gets payment gateway entry points
 		 */
 		protected function get_gateway_entry_points() {
+
+			if ( empty( self::$gateway_entry_points ) ) {
+				$this->set_gateway_entry_points();
+			}
+
 			return is_array( self::$gateway_entry_points ) && ! empty( self::$gateway_entry_points )
 				? self::$gateway_entry_points
 				: self::$default_gateway_entry_points;
@@ -499,21 +500,21 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			} else {
 				// @codingStandardsIgnoreStart
 				$ch = curl_init();
-				curl_setopt($ch, CURLOPT_HEADER, false);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, $data['headers']);
-				curl_setopt($ch, CURLOPT_POST, true);
-				curl_setopt($ch, CURLOPT_URL, $data['url']);
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $data['xml']);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-				curl_setopt($ch, CURLOPT_TIMEOUT, 12);
-				$response = curl_exec($ch);
-				$err_no = curl_errno($ch);
-				$err_msg = curl_error($ch);
-				$info = curl_getinfo($ch);
-				curl_close($ch);
+				curl_setopt( $ch, CURLOPT_HEADER, false );
+				curl_setopt( $ch, CURLOPT_HTTPHEADER, $data['headers'] );
+				curl_setopt( $ch, CURLOPT_POST, true );
+				curl_setopt( $ch, CURLOPT_URL, $data['url'] );
+				curl_setopt( $ch, CURLOPT_POSTFIELDS, $data['xml'] );
+				curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+				curl_setopt( $ch, CURLOPT_ENCODING, 'UTF-8' );
+				curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+				curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+				curl_setopt( $ch, CURLOPT_TIMEOUT, 12 );
+				$response = curl_exec( $ch );
+				$err_no = curl_errno( $ch );
+				$err_msg = curl_error( $ch );
+				$info = curl_getinfo( $ch );
+				curl_close( $ch );
 				// @codingStandardsIgnoreEnd
 			}
 			return $err_no;
@@ -522,11 +523,9 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		/**
 		 * Retrieves the gateway entry points
 		 *
-		 *  @param array $diagnostic_info Last transfer diagnostic information.
-		 *
 		 * @return array|WP_Error
 		 */
-		public function retrieve_gateway_entry_points( &$diagnostic_info = array() ) {
+		public function retrieve_gateway_entry_points() {
 			$xml_data = array(
 				'MerchantID' => $this->gateway_merchant_id,
 				'Password'   => $this->gateway_password,
@@ -547,15 +546,14 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
                                  </soap:Body>
                              </soap:Envelope>';
 
-			$gateway_id      = 0;
-			$trans_attempt   = 1;
-			$attempt_no      = 0;
-			$max_attempts    = 2;
-			$soap_success    = false;
-			$result          = array();
-			$diagnostic_info = array();
+			$gateway_id    = 0;
+			$trans_attempt = 1;
+			$attempt_no    = 0;
+			$max_attempts  = 1;
+			$soap_success  = false;
+			$result        = array();
 
-			$gateways       = $this->get_gateway_entry_points();
+			$gateways       = self::$default_gateway_entry_points;
 			$gateways_count = count( $gateways );
 
 			while ( ! $soap_success && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
@@ -580,7 +578,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					}
 				}
 
-				$diagnostic_info[ 'Connection attempt ' . ( ++$attempt_no ) ] = array(
+				$this->connection_info[ 'Connection attempt ' . ( ++$attempt_no ) ] = array(
 					'curl_errno'  => $curl_errno,
 					'curl_errmsg' => $curl_errmsg,
 					'response'    => $response,
@@ -821,7 +819,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		public static function get_warning_message() {
 			return ( version_compare( WC()->version, '3.5.0', '>=' ) &&
-					version_compare( WC()->version, '3.5.1', '<=' ) )
+				version_compare( WC()->version, '3.5.1', '<=' ) )
 				? __( 'Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin. Please consider updating WooCommerce.', 'woocommerce-paymentsense' )
 				: '';
 		}
@@ -833,6 +831,15 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		protected function is_info_request() {
 			return 'info' === $this->get_http_var( 'action', '' );
+		}
+
+		/**
+		 * Checks whether the request is for connection information
+		 *
+		 * @return  bool
+		 */
+		protected function is_connection_info_request() {
+			return 'connection_info' === $this->get_http_var( 'action', '' );
 		}
 
 		/**
@@ -871,6 +878,14 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
+		 * Processes the request for connection information
+		 */
+		protected function process_connection_info_request() {
+			$info = $this->get_connection_status_message();
+			$this->output_info( $info );
+		}
+
+		/**
 		 * Outputs plugin information
 		 *
 		 * @param array $info Module information.
@@ -895,7 +910,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			// @codingStandardsIgnoreStart
 			@header( 'Cache-Control: max-age=0, must-revalidate, no-cache, no-store', true );
 			@header( 'Pragma: no-cache', true );
-			@header( 'Content-Type: '. $content_type, true );
+			@header( 'Content-Type: ' . $content_type, true );
 			echo $body;
 			// @codingStandardsIgnoreEnd
 			exit;
@@ -1009,11 +1024,98 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @return array
 		 */
 		private function check_gateway_connection() {
-			$result = $this->retrieve_gateway_entry_points( $diagnostic_info );
+			$result = $this->retrieve_gateway_entry_points();
 			return array(
 				'Gateway entry points' => $result,
-				'Connection info'      => $diagnostic_info,
+				'Connection info'      => $this->connection_info,
 			);
+		}
+
+		/**
+		 * Checks the connection with the Paymentsense entry points
+		 *
+		 * @return array|false
+		 */
+		public function get_connection_status_code() {
+			$result = false;
+			$this->get_gateway_entry_points();
+			$connection_no = 0;
+			foreach ( $this->connection_info as $connection_info ) {
+				$connection_no++;
+				$curl_error_no = $connection_info['curl_errno'];
+				switch ( $curl_error_no ) {
+					case CURLE_OK:
+					case CURLE_ABORTED_BY_CALLBACK:
+						$result = $curl_error_no;
+						break;
+					case CURLE_COULDNT_RESOLVE_HOST:
+					case CURLE_OPERATION_TIMEDOUT:
+						if ( 1 === $connection_no ) {
+							$result = $curl_error_no;
+						} else {
+							if ( $result !== $curl_error_no ) {
+								$result = false;
+							}
+						}
+				}
+			}
+			return $result;
+		}
+
+		/**
+		 * Checks the connection with the Paymentsense entry points
+		 *
+		 * @return array
+		 */
+		public function get_connection_status_message() {
+			$result = array();
+
+			$connection_status_code = $this->get_connection_status_code();
+
+			if ( false === $connection_status_code ) {
+				$result = array(
+					'msg'   => sprintf(
+						// Translators: %s - diagnostic information.
+						__(
+							'Warning: The Paymentsense plugin cannot connect to the Paymentsense gateway. Please contact support providing the information below: <pre>%s</pre>',
+							'woocommerce-paymentsense'
+						),
+						$this->convert_array_to_string( $this->connection_info )
+					),
+					'class' => 'notice notice-error',
+				);
+			} else {
+				switch ( $connection_status_code ) {
+					case CURLE_OK:
+						$result = array(
+							'msg'   => 'Connection to Paymentsense was successful.',
+							'class' => 'notice notice-success',
+						);
+						break;
+					case CURLE_ABORTED_BY_CALLBACK:
+						$result = array(
+							'msg'   => 'FYI: The Paymentsense Hosted method is configured to run in safe mode. You can still take payments, but refunds will need to be done via the MMS.',
+							'class' => 'notice notice-warning',
+						);
+						break;
+					case CURLE_COULDNT_RESOLVE_HOST:
+						$result = array(
+							'msg'   => 'Warning: The Paymentsense plugin cannot resolve any of the Paymentsense gateway entry points. Please check your DNS resolution or contact support.',
+							'class' => 'notice notice-error',
+						);
+						break;
+					case CURLE_OPERATION_TIMEDOUT:
+						$result = array(
+							'msg'   => $this instanceof WC_Paymentsense_Hosted
+								? 'Warning: Port 4430 seems to be closed on your server. Please open port 4430 or set the "Port 4430 is NOT open on my server" configuration setting to "Yes".'
+								: 'Warning: Port 4430 seems to be closed on your server. Paymentsense Direct can NOT be used in this case. Please use Paymentsense Hosted or open port 4430.',
+							'class' => 'notice notice-error',
+						);
+						break;
+				}
+			}
+
+			return $result;
 		}
 	}
 }

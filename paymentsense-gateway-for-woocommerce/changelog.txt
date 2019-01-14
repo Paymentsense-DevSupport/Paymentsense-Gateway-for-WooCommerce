@@ -1,5 +1,14 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.13
+Paymentsense Gateway for WooCommerce 3.0.14
+
+
+## [3.0.14] - 2019-01-14
+### Added
+- Gateway connectivity information on the payment methods settings pages
+
+### Changed
+- Configuration setting "Disable communication on port 4430" renamed to "Port 4430 is NOT open on my server (safe mode with refunds disabled)"
+- Number of attempts for retrieving gateway entry points configuration reduced to 1
 
 
 ## [3.0.13] - 2019-01-07
