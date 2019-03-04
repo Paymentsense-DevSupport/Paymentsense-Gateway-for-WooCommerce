@@ -233,15 +233,15 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 			if ( $this->is_connection_secure() ) {
 				$result               = true;
 				$required_card_fields = array(
-					'psense_ccname',
-					'psense_ccnum',
-					'psense_cv2',
-					'psense_expmonth',
-					'psense_expyear',
+					'psense_ccname'   => __( 'Card Name', 'woocommerce-paymentsense' ),
+					'psense_ccnum'    => __( 'Credit Card Number', 'woocommerce-paymentsense' ),
+					'psense_cv2'      => __( 'CVV/CV2 Number', 'woocommerce-paymentsense' ),
+					'psense_expmonth' => __( 'Expiration month', 'woocommerce-paymentsense' ),
+					'psense_expyear'  => __( 'Expiration year', 'woocommerce-paymentsense' ),
 				);
-				foreach ( $required_card_fields as $field ) {
-					if ( empty( wc_get_post_data_by_key( $field ) ) ) {
-						wc_add_notice( 'Required variable (' . $field . ') is missing', 'error' );
+				foreach ( $required_card_fields as $key => $value ) {
+					if ( empty( wc_get_post_data_by_key( $key ) ) ) {
+						wc_add_notice( '"' . $value . '" form field is empty.', 'error' );
 						$result = false;
 					}
 				}
@@ -528,8 +528,8 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				$pay_url = add_query_arg(
 					array(
 						// @codingStandardsIgnoreStart
-						'key'            => sanitize_text_field( $_GET['key'] ),
-						'order-received' => sanitize_text_field( $_GET['order-pay'] ),
+						'key'       => sanitize_text_field( $_GET['key'] ),
+						'order-pay' => sanitize_text_field( $_GET['order-pay'] ),
 						// @codingStandardsIgnoreEnd
 					)
 				);
@@ -553,7 +553,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 			}
 
 			// @codingStandardsIgnoreLine
-			$order_id = (int) sanitize_text_field( $_GET['order-received'] );
+			$order_id = (int) sanitize_text_field( $_GET['order-pay'] );
 			$order    = new WC_Order( $order_id );
 
 			$xml_data = array(
@@ -619,9 +619,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 									$order->add_order_note( __( 'Paymentsense Direct 3D payment completed', 'woocommerce-paymentsense' ) );
 									$order->payment_complete();
 									WC()->cart->empty_cart();
-									$location = wc_get_endpoint_url(
-										'order-received', $order_id, $order->get_checkout_order_received_url()
-									);
+									$location = $order->get_checkout_order_received_url();
 									break;
 								case PS_TRX_RESULT_DECLINED:
 									$order->update_status( 'failed', __( 'Paymentsense Direct 3D Secure Password Check Failed. ', 'woocommerce-paymentsense' ) . $trx_message );

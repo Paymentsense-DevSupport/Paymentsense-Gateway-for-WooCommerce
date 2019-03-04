@@ -196,23 +196,29 @@ msgstr "Paymentsense Direct 3D Secure Password Check Failed. "
 msgid "Refund was declined. "
 msgstr "Refund was declined. "
 
-msgid "Card Name:"
-msgstr "Card Name:"
+msgid "Card Name"
+msgstr "Card Name"
 
-msgid "Credit Card Number:"
-msgstr "Credit Card Number:"
+msgid "Credit Card Number"
+msgstr "Credit Card Number"
 
-msgid "CVV/CV2 Number:"
-msgstr "CVV/CV2 Number:"
+msgid "CVV/CV2 Number"
+msgstr "CVV/CV2 Number"
 
-msgid "Issue Number:"
-msgstr "Issue Number:"
+msgid "Issue Number"
+msgstr "Issue Number"
 
 msgid "(Maestro/Solo only)."
 msgstr "(Maestro/Solo only)."
 
-msgid "Expiration date:"
-msgstr "Expiration date:"
+msgid "Expiration date"
+msgstr "Expiration date"
+
+msgid "Expiration month"
+msgstr "Expiration month"
+
+msgid "Expiration year"
+msgstr "Expiration year"
 
 msgid "Month"
 msgstr "Month"

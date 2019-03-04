@@ -154,7 +154,10 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', PS_IMG_LOGO );
 
 			// Adds refunds support.
-			if ( 'true' !== $this->settings['disable_comm_on_port_4430'] ) {
+			if (
+				! isset( $this->settings['disable_comm_on_port_4430'] ) ||
+				( 'true' !== $this->settings['disable_comm_on_port_4430'] )
+			) {
 				array_push( $this->supports, 'refunds' );
 			}
 		}
@@ -494,28 +497,38 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @return int the error number or 0 if no error occurred
 		 */
 		protected function send_transaction( $data, &$response, &$info = array(), &$err_msg = '' ) {
-			if ( 'true' === $this->settings['disable_comm_on_port_4430'] ) {
+			if (
+				isset( $this->settings['disable_comm_on_port_4430'] ) &&
+				( 'true' === $this->settings['disable_comm_on_port_4430'] )
+			) {
 				$err_no  = CURLE_ABORTED_BY_CALLBACK;
 				$err_msg = 'Communication Aborted. The communication on port 4430 is disabled at the plugin configuration settings.';
 			} else {
-				// @codingStandardsIgnoreStart
-				$ch = curl_init();
-				curl_setopt( $ch, CURLOPT_HEADER, false );
-				curl_setopt( $ch, CURLOPT_HTTPHEADER, $data['headers'] );
-				curl_setopt( $ch, CURLOPT_POST, true );
-				curl_setopt( $ch, CURLOPT_URL, $data['url'] );
-				curl_setopt( $ch, CURLOPT_POSTFIELDS, $data['xml'] );
-				curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-				curl_setopt( $ch, CURLOPT_ENCODING, 'UTF-8' );
-				curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-				curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-				curl_setopt( $ch, CURLOPT_TIMEOUT, 12 );
-				$response = curl_exec( $ch );
-				$err_no = curl_errno( $ch );
-				$err_msg = curl_error( $ch );
-				$info = curl_getinfo( $ch );
-				curl_close( $ch );
-				// @codingStandardsIgnoreEnd
+				if ( ! function_exists( 'curl_version' ) ) {
+					$err_no   = CURLE_FAILED_INIT;
+					$err_msg  = 'cURL is not enabled';
+					$info     = array();
+					$response = '';
+				} else {
+					// @codingStandardsIgnoreStart
+					$ch = curl_init();
+					curl_setopt( $ch, CURLOPT_HEADER, false );
+					curl_setopt( $ch, CURLOPT_HTTPHEADER, $data['headers'] );
+					curl_setopt( $ch, CURLOPT_POST, true );
+					curl_setopt( $ch, CURLOPT_URL, $data['url'] );
+					curl_setopt( $ch, CURLOPT_POSTFIELDS, $data['xml'] );
+					curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+					curl_setopt( $ch, CURLOPT_ENCODING, 'UTF-8' );
+					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+					curl_setopt( $ch, CURLOPT_TIMEOUT, 12 );
+					$response = curl_exec( $ch );
+					$err_no = curl_errno( $ch );
+					$err_msg = curl_error( $ch );
+					$info = curl_getinfo( $ch );
+					curl_close( $ch );
+					// @codingStandardsIgnoreEnd
+				}
 			}
 			return $err_no;
 		}
@@ -1050,6 +1063,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 						break;
 					case CURLE_COULDNT_RESOLVE_HOST:
 					case CURLE_OPERATION_TIMEDOUT:
+					case CURLE_COULDNT_CONNECT:
 						if ( 1 === $connection_no ) {
 							$result = $curl_error_no;
 						} else {
@@ -1105,6 +1119,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 						);
 						break;
 					case CURLE_OPERATION_TIMEDOUT:
+					case CURLE_COULDNT_CONNECT:
 						$result = array(
 							'msg'   => $this instanceof WC_Paymentsense_Hosted
 								? 'Warning: Port 4430 seems to be closed on your server. Please open port 4430 or set the "Port 4430 is NOT open on my server" configuration setting to "Yes".'

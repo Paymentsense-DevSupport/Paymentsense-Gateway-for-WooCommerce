@@ -3,8 +3,8 @@
 Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
-Tested up to: 5.0
-Stable tag: 3.0.14
+Tested up to: 5.1
+Stable tag: 3.0.15
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -31,8 +31,8 @@ Direct on the other hand means that during the checkout process the customer ent
 = Minimum Requirements =
 
 * PHP version 5.6.0 or greater
-* WordPress 4.4+ (tested up to 4.9.8)
-* WooCommerce 3.x (tested up to 3.5.2). Warning: WooCommerce 3.5.x contains a bug that affects the Hosted payment method of the Paymentsense plugin.
+* WordPress 4.4+ (tested up to 5.1)
+* WooCommerce 3.x (tested up to 3.5.5). Warning: WooCommerce 3.5.0 and 3.5.1 contain a bug that affects the Hosted payment method of the Paymentsense plugin.
 * Open outbound port 4430 in order to use the Direct Method and for perform online refunds
 * PCI-certified server using SSL/TLS in order to use the Direct Method
 
@@ -116,10 +116,13 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.14] - 2019-01-14
+## [3.0.15] - 2019-03-04
 ### Added
-- Gateway connectivity information on the payment methods settings pages
+- cURL error 7 (CURLE_COULDNT_CONNECT) considered as a case of blocked port 4430
+- Not enabled cURL PHP extension handled as cURL error 2 (CURLE_FAILED_INIT)
 
 ### Changed
-- Configuration setting "Disable communication on port 4430" renamed to "Port 4430 is NOT open on my server (safe mode with refunds disabled)"
-- Number of attempts for retrieving gateway entry points configuration reduced to 1
+- Error messages for empty card data (Paymentsense Direct)
+
+### Removed
+- Duplicated "order-received" URL parameter when using URL rewriting (Paymentsense Direct)

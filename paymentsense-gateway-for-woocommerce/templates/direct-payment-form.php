@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <table style="border: none;">
 	<tr style="border: none;">
 		<td style="border: none; width: 40%">
-			<label for="psense_ccname"><?php esc_html_e( 'Card Name:', 'woocommerce-paymentsense' ); ?> <span
+			<label for="psense_ccname"><?php esc_html_e( 'Card Name', 'woocommerce-paymentsense' ); ?>: <span
 						class="required">*</span></label>
 		</td>
 		<td colspan="2" style="border: none;">
@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</tr>
 	<tr style="border: none;">
 		<td style="border: none;">
-			<label for="psense_ccnum"><?php esc_html_e( 'Credit Card Number:', 'woocommerce-paymentsense' ); ?> <span
+			<label for="psense_ccnum"><?php esc_html_e( 'Credit Card Number', 'woocommerce-paymentsense' ); ?>: <span
 						class="required">*</span></label>
 		</td>
 		<td colspan="2" style="border: none;">
@@ -42,7 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</tr>
 	<tr>
 		<td style="border: none;">
-			<label for="psense_cv2"><?php esc_html_e( 'CVV/CV2 Number:', 'woocommerce-paymentsense' ); ?> <span
+			<label for="psense_cv2"><?php esc_html_e( 'CVV/CV2 Number', 'woocommerce-paymentsense' ); ?>: <span
 						class="required">*</span></label>
 		</td>
 		<td style="border: none;">
@@ -56,7 +56,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</tr>
 	<tr>
 		<td style="border: none;">
-			<label for="psense_issueno"><?php esc_html_e( 'Issue Number:', 'woocommerce-paymentsense' ); ?></label>
+			<label for="psense_issueno"><?php esc_html_e( 'Issue Number', 'woocommerce-paymentsense' ); ?>:</label>
 		</td>
 		<td style="border: none;">
 			<input type="text" class="input-text" id="psense_issueno" name="psense_issueno"
@@ -68,7 +68,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</tr>
 	<tr>
 		<td style="border: none;">
-			<label for="psense_expmonth"><?php esc_html_e( 'Expiration date:', 'woocommerce-paymentsense' ); ?> <span
+			<label for="psense_expmonth"><?php esc_html_e( 'Expiration date', 'woocommerce-paymentsense' ); ?>: <span
 						class="required">*</span></label>
 		</td>
 		<td style="border: none;">
