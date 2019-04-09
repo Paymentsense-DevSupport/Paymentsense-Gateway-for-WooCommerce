@@ -14,12 +14,11 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit();
 }
-
 ?>
+<!DOCTYPE html>
 <html>
 <head>
 	<title>Processing Payment...</title>
-	<?php wp_print_scripts(); ?>
 </head>
 <body style="max-height: 400px; overflow: hidden;">
 <img src="<?php echo esc_url( $args['spinner'] ); ?>"
@@ -29,15 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<input name="CrossReference" type="hidden" value="<?php echo esc_attr( $args['crossref'] ); ?>"/>
 	<input name="PaRes" type="hidden" value="<?php echo esc_attr( $args['pares'] ); ?>"/>
 	<script type="text/javascript">
-		window.onload = function () {
-			var auto_refresh = setInterval(function () {
-				submitform();
-			}, 1000);
-			function submitform() {
-				document.getElementById("pms<?php echo esc_attr( $args['target'] ); ?>").submit();
-				clearTimeout(auto_refresh);
-			}
-		}
+		document.getElementById("pms<?php echo esc_attr( $args['target'] ); ?>").submit();
 	</script>
 </form>
 </body>

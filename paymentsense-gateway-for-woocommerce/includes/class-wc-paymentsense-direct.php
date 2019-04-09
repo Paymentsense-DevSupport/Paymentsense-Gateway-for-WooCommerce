@@ -205,7 +205,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 		public function payment_fields() {
 			if ( $this->is_valid_for_use() ) {
 				$this->show_output(
-					'direct-payment-form.php',
+					'paymentsense-direct-payment-form.php',
 					array(
 						'description' => $this->description,
 					)
@@ -494,7 +494,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 			);
 
 			$args = array(
-				'pay_url'    => $paymentsense_sess['url'],
+				'acs_url'    => $paymentsense_sess['url'],
 				'target'     => 'ACSFrame',
 				'term_url'   => $term_url,
 				'pareq'      => $paymentsense_sess['pareq'],
@@ -504,7 +504,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 			);
 
 			$this->show_output(
-				'direct-acs-redirect.php',
+				'paymentsense-direct-acs-redirect.php',
 				$args
 			);
 		}
@@ -545,7 +545,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				);
 
 				$this->show_output(
-					'direct-return-redirect.php',
+					'paymentsense-direct-return-redirect.php',
 					$args
 				);
 
@@ -659,7 +659,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				}
 			}
 
-			$order->update_status( 'failed', __( 'UnAn unexpected error has occurred. ', 'woocommerce-paymentsense' ) );
+			$order->update_status( 'failed', __( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' ) );
 			wc_add_notice(
 				__( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' ),
 				'error'

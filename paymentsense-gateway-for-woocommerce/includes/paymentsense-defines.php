@@ -35,4 +35,4 @@ define( 'TYPE_TEXT_PLAIN', 'text/plain' );
  * Images
  */
 define( 'PS_IMG_LOGO', plugins_url( 'assets/images/paymentsense-logo.png', dirname( __FILE__ ) ) );
-define( 'PS_IMG_SPINNER', plugins_url( 'assets/images/AJAXSpinner.gif', dirname( __FILE__ ) ) );
+define( 'PS_IMG_SPINNER', plugins_url( 'assets/images/spinner.gif', dirname( __FILE__ ) ) );

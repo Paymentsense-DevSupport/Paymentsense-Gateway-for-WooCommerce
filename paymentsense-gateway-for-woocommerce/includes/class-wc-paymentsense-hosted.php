@@ -391,11 +391,22 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		private function output_redirect_form( $order_id ) {
 			$order = new WC_Order( $order_id );
 			$this->show_output(
-				'hosted-redirect.php',
+				'paymentsense-hosted-redirect.php',
 				array(
-					'title'            => __( 'Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment.', 'woocommerce-paymentsense' ),
-					'paymentsense_adr' => $this->get_payment_form_url(),
-					'arguments'        => $this->build_form_fields( $order ),
+					'title'                => __(
+						'Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment.',
+						'woocommerce-paymentsense'
+					),
+					'hpf_url'              => $this->get_payment_form_url(),
+					'hpf_arguments'        => $this->build_form_fields( $order ),
+					'hpf_submit_button'    => __(
+						'Click here if you are not redirected within 10 seconds...',
+						'woocommerce-paymentsense'
+					),
+					'hpf_redirect_message' => __(
+						'We are now redirecting you to Paymentsense to complete your payment.',
+						'woocommerce-paymentsense'
+					),
 				)
 			);
 		}

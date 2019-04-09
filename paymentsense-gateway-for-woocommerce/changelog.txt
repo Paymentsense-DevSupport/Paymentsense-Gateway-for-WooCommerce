@@ -1,6 +1,10 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.15
+Paymentsense Gateway for WooCommerce 3.0.16
 
+
+## [3.0.16] - 2019-04-09
+### Changed
+- Templates including file names changes and JavaScript rework
 
 ## [3.0.15] - 2019-03-04
 ### Added

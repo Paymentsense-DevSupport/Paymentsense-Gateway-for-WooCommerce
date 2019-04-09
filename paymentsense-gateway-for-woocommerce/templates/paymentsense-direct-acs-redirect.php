@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 ?>
-<form name="pms<?php echo esc_attr( $args['target'] ); ?>" action="<?php echo esc_url( $args['pay_url'] ); ?>"
+<form name="pms<?php echo esc_attr( $args['target'] ); ?>" action="<?php echo esc_url( $args['acs_url'] ); ?>"
 	method="post" target="<?php echo esc_attr( $args['target'] ); ?>" id="pms<?php echo esc_attr( $args['target'] ); ?>">
 	<input name="TermUrl" type="hidden" value="<?php echo esc_url( $args['term_url'] ); ?>"/>
 	<input name="MD" type="hidden" value="<?php echo esc_attr( $args['crossref'] ); ?>"/>
@@ -25,14 +25,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 			width="100%" height="400" style="overflow-y:scroll;border:0"></iframe>
 	<a href="<?php echo esc_url( $args['cancel_url'] ); ?>"><?php esc_html_e( 'Cancel order & restore cart', 'woocommerce-paymentsense' ); ?></a>
 	<script type="text/javascript">
-		window.onload = function () {
-			var auto_refresh = setInterval(function () {
-				submitform();
-			}, 1000);
-			function submitform() {
-				document.getElementById("pms<?php echo esc_attr( $args['target'] ); ?>").submit();
-				clearTimeout(auto_refresh);
-			}
-		}
+		document.getElementById("pms<?php echo esc_attr( $args['target'] ); ?>").submit();
 	</script>
 </form>

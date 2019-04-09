@@ -202,13 +202,14 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		public function admin_options() {
 			$args = array(
-				'this_'       => $this,
-				'title'       => $this->get_method_title(),
-				'description' => $this->get_method_description(),
+				'this_'           => $this,
+				'title'           => $this->get_method_title(),
+				'description'     => $this->get_method_description(),
+				'module_info_url' => $this->get_module_info_url(),
 			);
 
 			$this->show_output(
-				'settings.php',
+				'paymentsense-settings.php',
 				$args
 			);
 
@@ -740,7 +741,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		protected function output_message( $message ) {
 			$this->show_output(
-				'message.php',
+				'paymentsense-message.php',
 				array(
 					'message' => $message,
 				)
@@ -1077,7 +1078,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Checks the connection with the Paymentsense entry points
+		 * Gets the status message of the connection with the Paymentsense entry points
 		 *
 		 * @return array
 		 */
@@ -1131,6 +1132,18 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			}
 
 			return $result;
+		}
+
+		/**
+		 * Gets the module information URL
+		 *
+		 * @return string
+		 */
+		public function get_module_info_url() {
+			return site_url(
+				'/?wc-api=' . get_class( $this ) . '&action=connection_info&output=json',
+				is_ssl() ? 'https' : 'http'
+			);
 		}
 	}
 }

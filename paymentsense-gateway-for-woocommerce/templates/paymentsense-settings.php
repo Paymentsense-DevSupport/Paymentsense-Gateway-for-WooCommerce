@@ -49,16 +49,22 @@ echo wp_kses_post( wpautop( $description ) );
 	<?php $this_->generate_settings_html(); ?>
 </table>
 <script type="text/javascript">
-	function check_gateway_connectivity() {
-		jQuery.get("<?php echo esc_attr( WC()->api_request_url( get_class( $_this ), is_ssl() ) ); ?>?wc-api=<?php echo esc_attr( get_class( $this_ ) ); ?>&action=connection_info&output=json", {}, function(result) {
-				if (result.hasOwnProperty('msg') && result.hasOwnProperty('class')) {
-					$('#gateway_connectivity_info_text').html(result.msg);
-					$("#gateway_connectivity_info_div").addClass(result.class);
+	if ( typeof jQuery !== 'undefined' ) {
+		function checkGatewayConnectivity() {
+			jQuery.get(
+				"<?php echo esc_url_raw( $module_info_url ); ?>", {}, function( result ) {
+					if ( result.hasOwnProperty( "msg" ) && result.hasOwnProperty( "class" ) ) {
+						jQuery( "#gateway_connectivity_info_text" ).html( result.msg );
+						jQuery( "#gateway_connectivity_info_div" ).addClass( result.class );
+					}
 				}
-			}
-		);
+			);
+		}
+		jQuery( function() {
+			checkGatewayConnectivity();
+		});
+	} else {
+		document.getElementById( 'gateway_connectivity_info_text' ).innerText = 'jQuery not found. Please enable jQuery.';
+		document.getElementById( 'gateway_connectivity_info_div' ).className = 'notice notice-error';
 	}
-	$(document).ready( function() {
-		check_gateway_connectivity();
-	});
 </script>
