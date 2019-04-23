@@ -276,6 +276,11 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 
 			$order = new WC_Order( $order_id );
 
+			$order->update_status(
+				'pending',
+				__( 'Pending payment', 'woocommerce-paymentsense' )
+			);
+
 			try {
 				$xml_data = array(
 					'MerchantID'       => $this->gateway_merchant_id,
@@ -385,8 +390,8 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 								// set success flag so it will not run the request again.
 								$soap_success = true;
 
-								$crossref = $this->get_xml_cross_reference( $response );
-								update_post_meta( (int) $order_id, 'CrossRef', $crossref );
+								$cross_ref = $this->get_xml_cross_reference( $response );
+								update_post_meta( (int) $order_id, 'CrossRef', $cross_ref );
 
 								switch ( $trx_status_code ) {
 									case PS_TRX_RESULT_SUCCESS:
@@ -400,7 +405,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 											'paymentsense',
 											array(
 												'pareq'    => $pareq,
-												'crossref' => $crossref,
+												'crossref' => $cross_ref,
 												'url'      => $url,
 											)
 										);
@@ -442,15 +447,15 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 
 				if ( 'success' === $transaction_status ) {
 					$order->payment_complete();
-					$order->add_order_note( 'Payment Successful: ' . $trx_message, 0 );
+					$order->add_order_note( __( 'Payment processed successfully. ', 'woocommerce-paymentsense' ) . $trx_message );
 					$result = array(
 						'result'   => 'success',
 						'redirect' => $this->get_return_url( $order ),
 					);
 				} elseif ( 'failed' === $transaction_status ) {
-					$order->update_status( 'failed', __( 'Payment Failed due to: ', 'woocommerce-paymentsense' ) . strtolower( $trx_message ) );
+					$order->update_status( 'failed', __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . strtolower( $trx_message ) );
 					wc_add_notice(
-						__( 'Payment Failed due to: ', 'woocommerce-paymentsense' ) . $trx_message . '<br />' .
+						__( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $trx_message . '<br />' .
 						__( 'Please check your card details and try again.', 'woocommerce-paymentsense' ),
 						'error'
 					);
@@ -556,6 +561,22 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 			$order_id = (int) sanitize_text_field( $_GET['order-pay'] );
 			$order    = new WC_Order( $order_id );
 
+			if ( 'processing' === $order->get_status() ) {
+				$order->add_order_note(
+					__(
+						'An unexpected callback notification has been received. This normally happens when the customer clicks on the "Back" button on their web browser or/and attempts to perform further payment transactions after a successful one is made.',
+						'woocommerce-paymentsense'
+					)
+				);
+				wc_add_notice(
+					__( 'It seems you already have paid for this order. In case of doubts, please contact us.', 'woocommerce-paymentsense' ),
+					'error'
+				);
+				$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+				wp_safe_redirect( $location );
+				return;
+			}
+
 			$xml_data = array(
 				'MerchantID'     => $this->gateway_merchant_id,
 				'Password'       => $this->gateway_password,
@@ -603,28 +624,37 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					if ( is_numeric( $trx_status_code ) ) {
 						// request was processed correctly.
 						if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
-							$trx_message = $this->get_xml_value( 'Message', $response, '.+' );
-							$auth_code   = $this->get_xml_value( 'AuthCode', $response, '.+' );
-							$crossref    = $this->get_xml_cross_reference( $response );
+							if ( ( PS_TRX_RESULT_DUPLICATE === $trx_status_code ) &&
+								( preg_match( '#<PreviousTransactionResult>(.+)</PreviousTransactionResult>#iU', $response, $matches ) ) ) {
+								$prev_trx_result = $matches[1];
+								$trx_status_code = $this->get_xml_value( 'StatusCode', $prev_trx_result, '.+' );
+								$trx_message     = $this->get_xml_value( 'Message', $prev_trx_result, '.+' );
+							} else {
+								$trx_message = $this->get_xml_value( 'Message', $response, '.+' );
+							}
 
 							switch ( $trx_status_code ) {
 								case PS_TRX_RESULT_SUCCESS:
-									if ( ! empty( $auth_code ) ) {
-										update_post_meta( (int) $order_id, 'AuthCode', $auth_code );
-									}
-									if ( ! empty( $crossref ) ) {
-										update_post_meta( (int) $order_id, 'CrossRef', $crossref );
-									}
-
-									$order->add_order_note( __( 'Paymentsense Direct 3D payment completed', 'woocommerce-paymentsense' ) );
+									$auth_code = $this->get_xml_value( 'AuthCode', $response, '.+' );
+									update_post_meta( (int) $order_id, 'AuthCode', $auth_code );
+									$cross_ref = $this->get_xml_cross_reference( $response );
+									update_post_meta( (int) $order_id, 'CrossRef', $cross_ref );
 									$order->payment_complete();
+									$order->add_order_note(
+										__( 'Payment (3DS) processed successfully. ', 'woocommerce-paymentsense' ) .
+										$trx_message
+									);
 									WC()->cart->empty_cart();
 									$location = $order->get_checkout_order_received_url();
 									break;
 								case PS_TRX_RESULT_DECLINED:
-									$order->update_status( 'failed', __( 'Paymentsense Direct 3D Secure Password Check Failed. ', 'woocommerce-paymentsense' ) . $trx_message );
+									$order->update_status(
+										'failed',
+										__( 'Payment (3DS) failed due to: ', 'woocommerce-paymentsense' ) .
+										$trx_message
+									);
 									wc_add_notice(
-										__( 'Payment Failed due to: ', 'woocommerce-paymentsense' ) . $trx_message . '<br />' .
+										__( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $trx_message . '<br />' .
 										__( 'Please check your card details and try again.', 'woocommerce-paymentsense' ),
 										'error'
 									);
@@ -633,9 +663,13 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 									);
 									break;
 								default:
-									$order->update_status( 'failed', __( 'Payment Failed due to: ', 'woocommerce-paymentsense' ) . $trx_message );
+									$order->update_status(
+										'failed',
+										__( 'Payment (3DS) failed due to: ', 'woocommerce-paymentsense' ) .
+										$trx_message
+									);
 									wc_add_notice(
-										__( 'Payment Failed due to: ', 'woocommerce-paymentsense' ) . $trx_message . '<br />' .
+										__( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $trx_message . '<br />' .
 										__( 'Please check your card details and try again.', 'woocommerce-paymentsense' ),
 										'error'
 									);
@@ -659,7 +693,10 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				}
 			}
 
-			$order->update_status( 'failed', __( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' ) );
+			$order->update_status(
+				'failed',
+				__( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' )
+			);
 			wc_add_notice(
 				__( 'An unexpected error has occurred. ', 'woocommerce-paymentsense' ),
 				'error'

@@ -163,12 +163,6 @@ msgstr "Cancel order &amp; restore cart"
 msgid "We are now redirecting you to Paymentsense to complete your payment."
 msgstr "We are now redirecting you to Paymentsense to complete your payment."
 
-msgid "Payment Successful: "
-msgstr "Payment Successful: "
-
-msgid "Paymentsense Direct 3D payment completed"
-msgstr "Paymentsense Direct 3D payment completed"
-
 msgid "This module requires an encrypted connection. "
 msgstr "This module requires an encrypted connection. "
 
@@ -178,9 +172,6 @@ msgstr "Please enable SSL/TLS."
 msgid "This module is not configured. Please configure gateway settings."
 msgstr "This module is not configured. Please configure gateway settings."
 
-msgid "Payment Failed due to: "
-msgstr "Payment Failed due to: "
-
 msgid "Please check your card details and try again."
 msgstr "Please check your card details and try again."
 
@@ -189,9 +180,6 @@ msgstr "An unexpected error has occurred. "
 
 msgid "Please contact Customer Support."
 msgstr "Please contact Customer Support."
-
-msgid "Paymentsense Direct 3D Secure Password Check Failed. "
-msgstr "Paymentsense Direct 3D Secure Password Check Failed. "
 
 msgid "Refund was declined. "
 msgstr "Refund was declined. "
@@ -256,6 +244,12 @@ msgstr "Payment failed due to: "
 msgid "Payment failed due to unknown or unsupported payment status. Payment Status: "
 msgstr "Payment failed due to unknown or unsupported payment status. Payment Status: "
 
+msgid "Payment (3DS) processed successfully. "
+msgstr "Payment (3DS) processed successfully. "
+
+msgid "Payment (3DS) failed due to: "
+msgstr "Payment (3DS) failed due to: "
+
 msgid "An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: "
 msgstr "An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: "
 
@@ -309,3 +303,12 @@ msgstr "Warning: Port 4430 seems to be closed on your server. Please open port 4
 
 msgid "Warning: Port 4430 seems to be closed on your server. Paymentsense Direct can NOT be used in this case. Please use Paymentsense Hosted or open port 4430."
 msgstr "Warning: Port 4430 seems to be closed on your server. Paymentsense Direct can NOT be used in this case. Please use Paymentsense Hosted or open port 4430."
+
+msgid "It seems you already have paid for this order. In case of doubts, please contact us."
+msgstr "It seems you already have paid for this order. In case of doubts, please contact us."
+
+msgid "An unexpected callback notification has been received. This normally happens when the customer clicks on the \"Back\" button on their web browser or/and attempts to perform further payment transactions after a successful one is made."
+msgstr "An unexpected callback notification has been received. This normally happens when the customer clicks on the \"Back\" button on their web browser or/and attempts to perform further payment transactions after a successful one is made."
+
+msgid "Pending payment"
+msgstr "Pending payment"

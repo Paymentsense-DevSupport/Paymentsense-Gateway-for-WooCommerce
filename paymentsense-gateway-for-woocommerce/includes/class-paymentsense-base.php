@@ -113,8 +113,16 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		protected $plugin_data = array();
 
 		/**
+		 * Connectivity Status.
+		 * Determines the connectivity with the gateway.
+		 *
+		 * @var boolean
+		 */
+		public $connectivity_status = null;
+
+		/**
 		 * Connection Information.
-		 * Used for troubleshooting and determining the connectivity with the gateway.
+		 * Used for troubleshooting the connectivity with the gateway.
 		 *
 		 * @var array
 		 */
@@ -599,6 +607,8 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					'info'        => $info,
 				);
 
+				$this->connectivity_status = $soap_success ? 'Successful' : 'Fail';
+
 				if ( $trans_attempt < $max_attempts ) {
 					$trans_attempt++;
 				} else {
@@ -878,14 +888,17 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 
 			if ( ( 'true' === $this->get_http_var( 'extended_info', '' ) ) &&
 				( 'true' === $this->get_option( 'extended_plugin_info' ) ) ) {
-				$extended_info = array(
-					'Module Latest Version' => $this->get_module_latest_version(),
-					'WordPress Version'     => $this->get_wp_version(),
-					'WooCommerce Version'   => $this->get_wc_version(),
-					'PHP Version'           => $this->get_php_version(),
-					'Connectivity'          => $this->check_gateway_connection(),
+				$extended_info = array_merge(
+					array(
+						'Module Latest Version' => $this->get_module_latest_version(),
+						'WordPress Version'     => $this->get_wp_version(),
+						'WooCommerce Version'   => $this->get_wc_version(),
+						'PHP Version'           => $this->get_php_version(),
+					),
+					$this->check_gateway_connection()
 				);
-				$info          = array_merge( $info, $extended_info );
+
+				$info = array_merge( $info, $extended_info );
 			}
 
 			$this->output_info( $info );
@@ -1040,6 +1053,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		private function check_gateway_connection() {
 			$result = $this->retrieve_gateway_entry_points();
 			return array(
+				'Connectivity'         => $this->connectivity_status,
 				'Gateway entry points' => $result,
 				'Connection info'      => $this->connection_info,
 			);

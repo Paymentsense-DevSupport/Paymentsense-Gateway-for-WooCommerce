@@ -1,10 +1,19 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.16
+Paymentsense Gateway for WooCommerce 3.0.17
+
+
+## [3.0.17] - 2019-04-18
+### Added
+- Handling of the unexpected callback notifications
+
+### Changed
+- Output of the extended module information feature
 
 
 ## [3.0.16] - 2019-04-09
 ### Changed
 - Templates including file names changes and JavaScript rework
+
 
 ## [3.0.15] - 2019-03-04
 ### Added
