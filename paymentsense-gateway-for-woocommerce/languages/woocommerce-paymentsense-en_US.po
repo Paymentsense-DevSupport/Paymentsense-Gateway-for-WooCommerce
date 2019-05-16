@@ -312,3 +312,33 @@ msgstr "An unexpected callback notification has been received. This normally hap
 
 msgid "Pending payment"
 msgstr "Pending payment"
+
+msgid "Gateway MerchantID is invalid. Please make sure the Gateway MerchantID matches the ABCDEF-1234567 format."
+msgstr "Gateway MerchantID is invalid. Please make sure the Gateway MerchantID matches the ABCDEF-1234567 format."
+
+msgid "Gateway MerchantID, Gateway Password, Gateway PreSharedKey and Gateway Hash Method are valid."
+msgstr "Gateway MerchantID, Gateway Password, Gateway PreSharedKey and Gateway Hash Method are valid."
+
+msgid "Gateway MerchantID is invalid."
+msgstr "Gateway MerchantID is invalid."
+
+msgid "Gateway PreSharedKey or/and Gateway Hash Method are invalid."
+msgstr "Gateway PreSharedKey or/and Gateway Hash Method are invalid."
+
+msgid "Gateway Password is invalid."
+msgstr "Gateway Password is invalid."
+
+msgid "Gateway Password, Gateway PreSharedKey or/and Gateway Hash Method are invalid."
+msgstr "Gateway Password, Gateway PreSharedKey or/and Gateway Hash Method are invalid."
+
+msgid "Gateway PreSharedKey and Gateway Hash Method cannot be validated at this time."
+msgstr "Gateway PreSharedKey and Gateway Hash Method cannot be validated at this time."
+
+msgid "Gateway MerchantID or/and Gateway Password are invalid."
+msgstr "Gateway MerchantID or/and Gateway Password are invalid."
+
+msgid "The gateway settings cannot be validated at this time."
+msgstr "The gateway settings cannot be validated at this time."
+
+msgid "Gateway MerchantID and Gateway Password are valid."
+msgstr "Gateway MerchantID and Gateway Password are valid."

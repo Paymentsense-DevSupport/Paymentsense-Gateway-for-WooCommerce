@@ -38,6 +38,9 @@ if ( $this_ instanceof WC_Paymentsense_Hosted ) {
 <div id="gateway_connectivity_info_div">
 	<p id="gateway_connectivity_info_text"></p>
 </div>
+<div id="gateway_settings_info_div">
+	<p id="gateway_settings_info_text"></p>
+</div>
 <?php
 echo '<h2>' . esc_html( $title ) . '</h2>';
 echo wp_kses_post( wpautop( $description ) );
@@ -50,18 +53,22 @@ echo wp_kses_post( wpautop( $description ) );
 </table>
 <script type="text/javascript">
 	if ( typeof jQuery !== 'undefined' ) {
-		function checkGatewayConnectivity() {
+		function checkGatewayConnectivityAndSettings() {
 			jQuery.get(
 				"<?php echo esc_url_raw( $module_info_url ); ?>", {}, function( result ) {
-					if ( result.hasOwnProperty( "msg" ) && result.hasOwnProperty( "class" ) ) {
-						jQuery( "#gateway_connectivity_info_text" ).html( result.msg );
-						jQuery( "#gateway_connectivity_info_div" ).addClass( result.class );
+					if ( result.status.hasOwnProperty( "msg" ) && result.status.hasOwnProperty( "class" ) ) {
+						jQuery( "#gateway_connectivity_info_text" ).html( result.status.msg );
+						jQuery( "#gateway_connectivity_info_div" ).addClass( result.status.class );
+					}
+					if ( result.settings.hasOwnProperty( "msg" ) && result.settings.hasOwnProperty( "class" ) ) {
+						jQuery( "#gateway_settings_info_text" ).html( result.settings.msg );
+						jQuery( "#gateway_settings_info_div" ).addClass( result.settings.class );
 					}
 				}
 			);
 		}
 		jQuery( function() {
-			checkGatewayConnectivity();
+			checkGatewayConnectivityAndSettings();
 		});
 	} else {
 		document.getElementById( 'gateway_connectivity_info_text' ).innerText = 'jQuery not found. Please enable jQuery.';

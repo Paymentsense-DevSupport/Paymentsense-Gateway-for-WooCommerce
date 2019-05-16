@@ -366,14 +366,14 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				$gateway_id         = 0;
 				$trans_attempt      = 1;
 				$max_attempts       = 3;
-				$soap_success       = false;
+				$valid_response     = false;
 				$transaction_status = 'failed';
 				$trx_message        = '';
 
 				$gateways       = $this->get_gateway_entry_points();
 				$gateways_count = count( $gateways );
 
-				while ( ! $soap_success && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
+				while ( ! $valid_response && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
 					$data = array(
 						'url'     => $gateways[ $gateway_id ],
 						'headers' => $headers,
@@ -385,10 +385,8 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 						$trx_message     = $this->get_xml_value( 'Message', $response, '.+' );
 
 						if ( is_numeric( $trx_status_code ) ) {
-							// request was processed correctly.
 							if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
-								// set success flag so it will not run the request again.
-								$soap_success = true;
+								$valid_response = true;
 
 								$cross_ref = $this->get_xml_cross_reference( $response );
 								update_post_meta( (int) $order_id, 'CrossRef', $cross_ref );
@@ -622,7 +620,6 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					$trx_status_code = $this->get_xml_value( 'StatusCode', $response, '[0-9]+' );
 
 					if ( is_numeric( $trx_status_code ) ) {
-						// request was processed correctly.
 						if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
 							if ( ( PS_TRX_RESULT_DUPLICATE === $trx_status_code ) &&
 								( preg_match( '#<PreviousTransactionResult>(.+)</PreviousTransactionResult>#iU', $response, $matches ) ) ) {
@@ -702,6 +699,96 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				'error'
 			);
 			wp_safe_redirect( wc_get_endpoint_url( 'order-pay', $order_id, $order->get_checkout_payment_url( false ) ) );
+		}
+
+		/**
+		 * Gets the message about the connection settings.
+		 *
+		 * @return array
+		 */
+		public function get_connection_settings_message() {
+			$result = array();
+			if ( ! $this->merchant_id_format_valid() ) {
+				$result = array(
+					'msg'   => __(
+						'Gateway MerchantID is invalid. Please make sure the Gateway MerchantID matches the ABCDEF-1234567 format.'
+					),
+					'class' => 'notice notice-error',
+				);
+			} else {
+				$merchant_credentials_valid = null;
+				foreach ( $this->connection_info[ self::CONN_INFO_GGEP ] as $connection_info ) {
+					if ( CURLE_OK === $connection_info['curl_errno'] ) {
+						$trx_status_code = $this->get_xml_value( 'StatusCode', $connection_info['response'], '[0-9]+' );
+						if ( PS_TRX_RESULT_SUCCESS === $trx_status_code ) {
+							$merchant_credentials_valid = true;
+							break;
+						} elseif ( PS_TRX_RESULT_FAILED === $trx_status_code ) {
+							$trx_message = $this->get_xml_value( 'Message', $connection_info['response'], '.+' );
+							if ( $this->merchant_credentials_invalid( $trx_message ) ) {
+								$merchant_credentials_valid = false;
+								break;
+							}
+						}
+					}
+				}
+				if ( true === $merchant_credentials_valid ) {
+					$result = array(
+						'msg'   => __(
+							'Gateway MerchantID and Gateway Password are valid.'
+						),
+						'class' => 'notice notice-success',
+					);
+				} else {
+					$gateway_settings_response = $this->check_gateway_settings();
+					switch ( $gateway_settings_response ) {
+						case self::HPF_RESP_MID_MISSING:
+						case self::HPF_RESP_MID_NOT_EXISTS:
+							$result = array(
+								'msg'   => __(
+									'Gateway MerchantID is invalid.'
+								),
+								'class' => 'notice notice-error',
+							);
+							break;
+						case self::HPF_RESP_HASH_INVALID:
+							if ( false === $merchant_credentials_valid ) {
+								$result = array(
+									'msg'   => __(
+										'Gateway Password is invalid.'
+									),
+									'class' => 'notice notice-error',
+								);
+							} else {
+								$result = array(
+									'msg'   => __(
+										'The gateway settings cannot be validated at this time.'
+									),
+									'class' => 'notice notice-warning',
+								);
+							}
+							break;
+						case self::HPF_RESP_NO_RESPONSE:
+							if ( false === $merchant_credentials_valid ) {
+								$result = array(
+									'msg'   => __(
+										'Gateway MerchantID or/and Gateway Password are invalid.'
+									),
+									'class' => 'notice notice-error',
+								);
+							} else {
+								$result = array(
+									'msg'   => __(
+										'The gateway settings cannot be validated at this time.'
+									),
+									'class' => 'notice notice-warning',
+								);
+							}
+							break;
+					}
+				}
+			}
+			return $result;
 		}
 	}
 }

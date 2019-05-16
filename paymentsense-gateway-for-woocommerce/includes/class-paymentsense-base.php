@@ -31,6 +31,21 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		const REQ_CUSTOMER_REDIRECT = '1';
 
 		/**
+		 * Connection Info Types
+		 */
+		const CONN_INFO_GGEP = 'GetGatewayEntryPoints';
+		const CONN_INFO_HPF  = 'HostedPaymentForm';
+
+		/**
+		 * Hosted Payment Form Responses
+		 */
+		const HPF_RESP_OK             = 'OK';
+		const HPF_RESP_HASH_INVALID   = 'HashDigest does not match';
+		const HPF_RESP_MID_MISSING    = 'MerchantID is missing';
+		const HPF_RESP_MID_NOT_EXISTS = 'Merchant doesn\'t exist';
+		const HPF_RESP_NO_RESPONSE    = '';
+
+		/**
 		 * Default Payment Gateway Entry Points
 		 *
 		 * @var array
@@ -116,17 +131,28 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Connectivity Status.
 		 * Determines the connectivity with the gateway.
 		 *
-		 * @var boolean
+		 * @var bool
 		 */
 		public $connectivity_status = null;
 
 		/**
-		 * Connection Information.
-		 * Used for troubleshooting the connectivity with the gateway.
+		 * Determines whether the merchant gateway credentials (Gateway MerchantID and Gateway Password)
+		 * match the ones on the MMS
+		 *
+		 * @var bool
+		 */
+		public $merchant_credentials_valid = null;
+
+		/**
+		 * Used for troubleshooting the connectivity with the gateway and validating the merchant gateway
+		 * credentials, preshared key and hash method.
 		 *
 		 * @var array
 		 */
-		public $connection_info = array();
+		public $connection_info = array(
+			self::CONN_INFO_GGEP => array(),
+			self::CONN_INFO_HPF  => array(),
+		);
 
 		/**
 		 * Supported content types of the output of the module information
@@ -430,14 +456,51 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Builds the fields for the hosted form as an associative array
+		 * Builds the fields for the Hosted Payment Form as an associative array
 		 *
 		 * @param  WC_Order $order WooCommerce order object.
-		 * @return array An associative array containing the Required Input Variables for the API of the payment form
+		 * @return array An associative array containing the Required Input Variables for the API of the Hosted Payment Form
 		 */
-		protected function build_form_fields( $order ) {
+		protected function build_hpf_fields( $order = null ) {
+			$fields = $order ? $this->build_payment_fields( $order ) : $this->build_sample_payment_fields();
+			$data   = 'MerchantID=' . $this->gateway_merchant_id;
+			$data  .= '&Password=' . $this->gateway_password;
 
-			$fields = array(
+			foreach ( $fields as $key => $value ) {
+				$data .= '&' . $key . '=' . $value;
+			};
+
+			if ( $this instanceof WC_Paymentsense_Direct ) {
+				// assigns SHA1 for the calculation of a dummy hash_digest for the purpose of validating the gateway settings.
+				$this->gateway_hashmethod = 'SHA1';
+			}
+
+			$hash_digest = $this->calculate_hash_digest( $data, $this->gateway_hashmethod, $this->gateway_presharedkey );
+
+			$additional_fields = array(
+				'HashDigest' => $hash_digest,
+				'MerchantID' => $this->gateway_merchant_id,
+			);
+
+			$fields = array_merge( $additional_fields, $fields );
+			$fields = array_map(
+				function( $value ) {
+					return str_replace( '"', '\"', $value );
+				},
+				$fields
+			);
+
+			return $fields;
+		}
+
+		/**
+		 * Builds the payment fields for the hosted payment form as an associative array
+		 *
+		 * @param  WC_Order $order WooCommerce order object.
+		 * @return array An associative array containing the payment fields
+		 */
+		protected function build_payment_fields( $order ) {
+			return array(
 				'Amount'                    => $this->get_order_property( $order, 'order_total' ) * 100,
 				'CurrencyCode'              => get_currency_iso_code( get_woocommerce_currency() ),
 				'OrderID'                   => $order->get_order_number(),
@@ -471,28 +534,46 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				'ServerResultURL'           => ( 'SERVER' === $this->get_option( 'gateway_result_delivery' ) ) ? WC()->api_request_url( get_class( $this ), is_ssl() ) : '',
 				'PaymentFormDisplaysResult' => 'false',
 			);
+		}
 
-			$data  = 'MerchantID=' . $this->gateway_merchant_id;
-			$data .= '&Password=' . $this->gateway_password;
-
-			foreach ( $fields as $key => $value ) {
-				$data .= '&' . $key . '=' . $value;
-			};
-
-			$additional_fields = array(
-				'HashDigest' => $this->calculate_hash_digest( $data, $this->gateway_hashmethod, $this->gateway_presharedkey ),
-				'MerchantID' => $this->gateway_merchant_id,
+		/**
+		 * Builds sample payment fields for the hosted payment form as an associative array
+		 * Used for the needs of performing a transaction to validate the preshared key and the hash method
+		 *
+		 * @return array An associative array containing the payment fields
+		 */
+		protected function build_sample_payment_fields() {
+			return array(
+				'Amount'                    => 100,
+				'CurrencyCode'              => get_currency_iso_code( get_woocommerce_currency() ),
+				'OrderID'                   => 'TEST-' . rand( 1000000, 9999999 ),
+				'TransactionType'           => $this->gateway_transaction_type,
+				'TransactionDateTime'       => date( 'Y-m-d H:i:s P' ),
+				'CallbackURL'               => WC()->api_request_url( get_class( $this ), is_ssl() ),
+				'OrderDescription'          => '',
+				'CustomerName'              => '',
+				'Address1'                  => '',
+				'Address2'                  => '',
+				'Address3'                  => '',
+				'Address4'                  => '',
+				'City'                      => '',
+				'State'                     => '',
+				'PostCode'                  => '',
+				'CountryCode'               => '',
+				'EmailAddress'              => '',
+				'PhoneNumber'               => '',
+				'EmailAddressEditable'      => 'true',
+				'PhoneNumberEditable'       => 'true',
+				'CV2Mandatory'              => 'true',
+				'Address1Mandatory'         => 'false',
+				'CityMandatory'             => 'false',
+				'PostCodeMandatory'         => 'false',
+				'StateMandatory'            => 'false',
+				'CountryMandatory'          => 'false',
+				'ResultDeliveryMethod'      => 'POST',
+				'ServerResultURL'           => '',
+				'PaymentFormDisplaysResult' => 'false',
 			);
-
-			$fields = array_merge( $additional_fields, $fields );
-			$fields = array_map(
-				function( $value ) {
-					return str_replace( '"', '\"', $value );
-				},
-				$fields
-			);
-
-			return $fields;
 		}
 
 		/**
@@ -502,13 +583,16 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @param mixed  $response the result or false on failure.
 		 * @param mixed  $info last transfer information.
 		 * @param string $err_msg last transfer error message.
+		 * @param bool   $force_transaction forces the transaction disregarding the disable_comm_on_port_4430 setting.
 		 *
 		 * @return int the error number or 0 if no error occurred
 		 */
-		protected function send_transaction( $data, &$response, &$info = array(), &$err_msg = '' ) {
+		protected function send_transaction( $data, &$response, &$info = array(), &$err_msg = '', $force_transaction = false ) {
 			if (
+			(
+				! $force_transaction &&
 				isset( $this->settings['disable_comm_on_port_4430'] ) &&
-				( 'true' === $this->settings['disable_comm_on_port_4430'] )
+				( 'true' === $this->settings['disable_comm_on_port_4430'] ) )
 			) {
 				$err_no  = CURLE_ABORTED_BY_CALLBACK;
 				$err_msg = 'Communication Aborted. The communication on port 4430 is disabled at the plugin configuration settings.';
@@ -529,7 +613,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 					curl_setopt( $ch, CURLOPT_ENCODING, 'UTF-8' );
 					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 9 );
 					curl_setopt( $ch, CURLOPT_TIMEOUT, 12 );
 					$response = curl_exec( $ch );
 					$err_no = curl_errno( $ch );
@@ -545,9 +629,11 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		/**
 		 * Retrieves the gateway entry points
 		 *
+		 * @param bool $force_transaction forces the transaction disregarding the disable_comm_on_port_4430 setting.
+		 *
 		 * @return array|WP_Error
 		 */
-		public function retrieve_gateway_entry_points() {
+		public function retrieve_gateway_entry_points( $force_transaction = false ) {
 			$xml_data = array(
 				'MerchantID' => $this->gateway_merchant_id,
 				'Password'   => $this->gateway_password,
@@ -568,46 +654,52 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
                                  </soap:Body>
                              </soap:Envelope>';
 
-			$gateway_id    = 0;
-			$trans_attempt = 1;
-			$attempt_no    = 0;
-			$max_attempts  = 1;
-			$soap_success  = false;
-			$result        = array();
+			$gateway_id      = 0;
+			$trans_attempt   = 1;
+			$attempt_no      = 0;
+			$max_attempts    = 1;
+			$trx_status_code = null;
+			$valid_response  = false;
+			$result          = array();
 
 			$gateways       = self::$default_gateway_entry_points;
 			$gateways_count = count( $gateways );
 
-			while ( ! $soap_success && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
+			while ( ! $valid_response && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
 				$data = array(
 					'url'     => $gateways[ $gateway_id ],
 					'headers' => $headers,
 					'xml'     => $xml,
 				);
 
-				$curl_errno = $this->send_transaction( $data, $response, $info, $curl_errmsg );
+				$curl_errno = $this->send_transaction( $data, $response, $info, $curl_errmsg, $force_transaction );
 				if ( 0 === $curl_errno ) {
 					$trx_status_code = $this->get_xml_value( 'StatusCode', $response, '[0-9]+' );
 
 					if ( is_numeric( $trx_status_code ) ) {
-						// request was processed correctly.
 						if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
-							// set success flag so it will not run the request again.
-							$soap_success = true;
-							$result       = $this->get_xml_gateway_entry_points( $response );
-
+							$valid_response = true;
+							$result         = $this->get_xml_gateway_entry_points( $response );
+							if ( PS_TRX_RESULT_SUCCESS === $trx_status_code ) {
+								$this->merchant_credentials_valid = true;
+							}
+						} else {
+							$trx_message = $this->get_xml_value( 'Message', $response, '.+' );
+							if ( $this->merchant_credentials_invalid( $trx_message ) ) {
+								$this->merchant_credentials_valid = false;
+							}
 						}
 					}
 				}
 
-				$this->connection_info[ 'Connection attempt ' . ( ++$attempt_no ) ] = array(
+				$this->connection_info[ self::CONN_INFO_GGEP ][ 'Connection attempt ' . ( ++$attempt_no ) ] = array(
 					'curl_errno'  => $curl_errno,
 					'curl_errmsg' => $curl_errmsg,
 					'response'    => $response,
 					'info'        => $info,
 				);
 
-				$this->connectivity_status = $soap_success ? 'Successful' : 'Fail';
+				$this->connectivity_status = is_numeric( $trx_status_code );
 
 				if ( $trans_attempt < $max_attempts ) {
 					$trans_attempt++;
@@ -676,14 +768,14 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$gateway_id         = 0;
 			$trans_attempt      = 1;
 			$max_attempts       = 3;
-			$soap_success       = false;
+			$valid_response     = false;
 			$transaction_status = 'failed';
 			$trx_message        = '';
 
 			$gateways       = $this->get_gateway_entry_points();
 			$gateways_count = count( $gateways );
 
-			while ( ! $soap_success && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
+			while ( ! $valid_response && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
 				$data = array(
 					'url'     => $gateways[ $gateway_id ],
 					'headers' => $headers,
@@ -695,11 +787,11 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					$trx_message     = $this->get_xml_value( 'Message', $response, '.+' );
 
 					if ( is_numeric( $trx_status_code ) ) {
-						// request was processed correctly.
 						if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
-							// set success flag so it will not run the request again.
-							$soap_success       = true;
-							$transaction_status = ( PS_TRX_RESULT_SUCCESS === $trx_status_code ) ? 'success' : 'failed';
+							$valid_response = ! $this->should_retry_txn( $trx_status_code, $trx_message );
+							if ( $valid_response ) {
+								$transaction_status = ( PS_TRX_RESULT_SUCCESS === $trx_status_code ) ? 'success' : 'failed';
+							}
 						}
 						if ( 'failed' === $transaction_status ) {
 							$trx_message .= '<br />' . $this->get_xml_value( 'Detail', $response, '.+' );
@@ -870,6 +962,36 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Processes the request for plugin information
 		 */
 		protected function process_info_request() {
+			$this->retrieve_plugin_data();
+
+			$info = array(
+				'Module Name'              => $this->get_module_name(),
+				'Module Installed Version' => $this->get_module_installed_version(),
+			);
+
+			if ( ( 'true' === $this->get_http_var( 'extended_info', '' ) ) &&
+				( 'true' === $this->get_option( 'extended_plugin_info' ) ) ) {
+				$connection_info = 'true' === $this->get_http_var( 'connection_info', '' );
+				$extended_info   = array_merge(
+					array(
+						'Module Latest Version' => $this->get_module_latest_version(),
+						'WordPress Version'     => $this->get_wp_version(),
+						'WooCommerce Version'   => $this->get_wc_version(),
+						'PHP Version'           => $this->get_php_version(),
+					),
+					$this->get_gateway_connection_details( $connection_info )
+				);
+
+				$info = array_merge( $info, $extended_info );
+			}
+
+			$this->output_info( $info );
+		}
+
+		/**
+		 * Retrieves the plugin data
+		 */
+		protected function retrieve_plugin_data() {
 			if ( ! function_exists( 'get_plugin_data' ) ) {
 				if ( is_file( ABSPATH . 'wp-admin/includes/plugin.php' ) ) {
 					require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -880,35 +1002,16 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				$ps_plugin_file    = '/paymentsense-gateway-for-woocommerce/paymentsense-gateway-for-woocommerce.php';
 				$this->plugin_data = get_plugin_data( WP_PLUGIN_DIR . $ps_plugin_file );
 			}
-
-			$info = array(
-				'Module Name'              => $this->get_module_name(),
-				'Module Installed Version' => $this->get_module_installed_version(),
-			);
-
-			if ( ( 'true' === $this->get_http_var( 'extended_info', '' ) ) &&
-				( 'true' === $this->get_option( 'extended_plugin_info' ) ) ) {
-				$extended_info = array_merge(
-					array(
-						'Module Latest Version' => $this->get_module_latest_version(),
-						'WordPress Version'     => $this->get_wp_version(),
-						'WooCommerce Version'   => $this->get_wc_version(),
-						'PHP Version'           => $this->get_php_version(),
-					),
-					$this->check_gateway_connection()
-				);
-
-				$info = array_merge( $info, $extended_info );
-			}
-
-			$this->output_info( $info );
 		}
 
 		/**
 		 * Processes the request for connection information
 		 */
 		protected function process_connection_info_request() {
-			$info = $this->get_connection_status_message();
+			$info = array(
+				'status'   => $this->get_connection_status_message(),
+				'settings' => $this->get_connection_settings_message(),
+			);
 			$this->output_info( $info );
 		}
 
@@ -970,7 +1073,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @return string
 		 */
-		private function get_module_name() {
+		protected function get_module_name() {
 			return array_key_exists( 'Name', $this->plugin_data )
 				? $this->plugin_data['Name']
 				: '';
@@ -981,7 +1084,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @return string
 		 */
-		private function get_module_installed_version() {
+		protected function get_module_installed_version() {
 			return array_key_exists( 'Version', $this->plugin_data )
 				? $this->plugin_data['Version']
 				: '';
@@ -992,7 +1095,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @return string
 		 */
-		private function get_module_latest_version() {
+		protected function get_module_latest_version() {
 			$result = 'N/A';
 
 			if ( ! function_exists( 'plugins_api' ) ) {
@@ -1023,7 +1126,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @return string
 		 */
-		private function get_wp_version() {
+		protected function get_wp_version() {
 			return get_bloginfo( 'version' );
 		}
 
@@ -1032,7 +1135,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @return string
 		 */
-		private function get_wc_version() {
+		protected function get_wc_version() {
 			return WC()->version;
 		}
 
@@ -1041,22 +1144,32 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @return string
 		 */
-		private function get_php_version() {
+		protected function get_php_version() {
 			return phpversion();
 		}
 
 		/**
-		 * Checks the connection with the Paymentsense entry points
+		 * Gets the gateway connection details
+		 *
+		 * @param bool $connection_info determines whether to include the connection info.
 		 *
 		 * @return array
 		 */
-		private function check_gateway_connection() {
-			$result = $this->retrieve_gateway_entry_points();
-			return array(
-				'Connectivity'         => $this->connectivity_status,
-				'Gateway entry points' => $result,
-				'Connection info'      => $this->connection_info,
+		protected function get_gateway_connection_details( $connection_info ) {
+			$this->retrieve_gateway_entry_points( true );
+
+			$settings_message = $this->get_connection_settings_message();
+			$connectivity     = $this->connectivity_status ? 'Successful' : 'Fail';
+			$result           = array(
+				'Connectivity on port 4430' => $connectivity,
+				'Gateway settings message'  => $settings_message['msg'],
 			);
+
+			if ( $connection_info ) {
+				$result['Connection info'] = $this->connection_info;
+			}
+
+			return $result;
 		}
 
 		/**
@@ -1068,7 +1181,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$result = false;
 			$this->get_gateway_entry_points();
 			$connection_no = 0;
-			foreach ( $this->connection_info as $connection_info ) {
+			foreach ( $this->connection_info[ self::CONN_INFO_GGEP ] as $connection_info ) {
 				$connection_no++;
 				$curl_error_no = $connection_info['curl_errno'];
 				switch ( $curl_error_no ) {
@@ -1109,7 +1222,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 							'Warning: The Paymentsense plugin cannot connect to the Paymentsense gateway. Please contact support providing the information below: <pre>%s</pre>',
 							'woocommerce-paymentsense'
 						),
-						$this->convert_array_to_string( $this->connection_info )
+						$this->convert_array_to_string( $this->connection_info[ self::CONN_INFO_GGEP ] )
 					),
 					'class' => 'notice notice-error',
 				);
@@ -1117,19 +1230,25 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				switch ( $connection_status_code ) {
 					case CURLE_OK:
 						$result = array(
-							'msg'   => 'Connection to Paymentsense was successful.',
+							'msg'   => __(
+								'Connection to Paymentsense was successful.'
+							),
 							'class' => 'notice notice-success',
 						);
 						break;
 					case CURLE_ABORTED_BY_CALLBACK:
 						$result = array(
-							'msg'   => 'FYI: The Paymentsense Hosted method is configured to run in safe mode. You can still take payments, but refunds will need to be done via the MMS.',
+							'msg'   => __(
+								'FYI: The Paymentsense Hosted method is configured to run in safe mode. You can still take payments, but refunds will need to be done via the MMS.'
+							),
 							'class' => 'notice notice-warning',
 						);
 						break;
 					case CURLE_COULDNT_RESOLVE_HOST:
 						$result = array(
-							'msg'   => 'Warning: The Paymentsense plugin cannot resolve any of the Paymentsense gateway entry points. Please check your DNS resolution or contact support.',
+							'msg'   => __(
+								'Warning: The Paymentsense plugin cannot resolve any of the Paymentsense gateway entry points. Please check your DNS resolution or contact support.'
+							),
 							'class' => 'notice notice-error',
 						);
 						break;
@@ -1137,8 +1256,12 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					case CURLE_COULDNT_CONNECT:
 						$result = array(
 							'msg'   => $this instanceof WC_Paymentsense_Hosted
-								? 'Warning: Port 4430 seems to be closed on your server. Please open port 4430 or set the "Port 4430 is NOT open on my server" configuration setting to "Yes".'
-								: 'Warning: Port 4430 seems to be closed on your server. Paymentsense Direct can NOT be used in this case. Please use Paymentsense Hosted or open port 4430.',
+								? __(
+									'Warning: Port 4430 seems to be closed on your server. Please open port 4430 or set the "Port 4430 is NOT open on my server" configuration setting to "Yes".'
+								)
+								: __(
+									'Warning: Port 4430 seems to be closed on your server. Paymentsense Direct can NOT be used in this case. Please use Paymentsense Hosted or open port 4430.'
+								),
 							'class' => 'notice notice-error',
 						);
 						break;
@@ -1158,6 +1281,123 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				'/?wc-api=' . get_class( $this ) . '&action=connection_info&output=json',
 				is_ssl() ? 'https' : 'http'
 			);
+		}
+
+		/**
+		 * Checks whether the gateway settings are valid by performing a request to the Hosted Payment Form
+		 *
+		 * @return string
+		 */
+		public function check_gateway_settings() {
+			$result      = self::HPF_RESP_NO_RESPONSE;
+			$hpf_err_msg = '';
+			$post_data   = http_build_query( $this->build_hpf_fields() );
+			$headers     = array(
+				'User-Agent: ' . $this->get_module_name() . ' v.' . $this->get_module_installed_version(),
+				'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+				'Accept-Language: en-UK,en;q=0.5',
+				'Accept-Encoding: identity',
+				'Connection: close',
+				'Content-Type: application/x-www-form-urlencoded',
+				'Content-Length: ' . strlen( $post_data ),
+			);
+			$data        = array(
+				'url'     => $this->get_payment_form_url(),
+				'headers' => $headers,
+				'xml'     => $post_data,
+			);
+
+			$curl_errno = $this->send_transaction( $data, $response, $info, $curl_errmsg, true );
+			if ( 0 === $curl_errno ) {
+				$hpf_err_msg = $this->get_hpf_error_message( $response );
+				if ( is_string( $hpf_err_msg ) ) {
+					switch ( true ) {
+						case $this->contains( $hpf_err_msg, self::HPF_RESP_HASH_INVALID ):
+							$result = self::HPF_RESP_HASH_INVALID;
+							break;
+						case $this->contains( $hpf_err_msg, self::HPF_RESP_MID_MISSING ):
+							$result = self::HPF_RESP_MID_MISSING;
+							break;
+						case $this->contains( $hpf_err_msg, self::HPF_RESP_MID_NOT_EXISTS ):
+							$result = self::HPF_RESP_MID_NOT_EXISTS;
+							break;
+						default:
+							$result = self::HPF_RESP_NO_RESPONSE;
+					}
+				} else {
+					$result = self::HPF_RESP_OK;
+				}
+			}
+
+			$this->connection_info[ self::CONN_INFO_HPF ] = array(
+				'curl_errno'  => $curl_errno,
+				'curl_errmsg' => $curl_errmsg,
+				'response'    => $response,
+				'info'        => $info,
+				'message'     => $hpf_err_msg,
+			);
+
+			return $result;
+		}
+
+		/**
+		 * Gets the error message from the Hosted Payment Form response (span id lbErrorMessageLabel)
+		 *
+		 * @param string $data HTML document.
+		 *
+		 * @return string
+		 */
+		protected function get_hpf_error_message( $data ) {
+			$result = null;
+			if ( preg_match( '/<span.*lbErrorMessageLabel[^>]*>(.*?)<\/span>/si', $data, $matches ) ) {
+				$result = strip_tags( $matches[1] );
+			}
+			return $result;
+		}
+
+		/**
+		 * Checks whether a string contains a needle.
+		 *
+		 * @param string $string the string.
+		 * @param string $needle the needle.
+		 *
+		 * @return bool
+		 */
+		protected function contains( $string, $needle ) {
+			return false !== strpos( $string, $needle );
+		}
+
+		/**
+		 * Determines whether the transaction should be retried.
+		 * Cross reference transactions having response "Couldn't find previous transaction" should retry.
+		 *
+		 * @param string $trx_status_code Transaction status code.
+		 * @param string $trx_message Transaction message.
+		 * @return bool
+		 */
+		protected function should_retry_txn( $trx_status_code, $trx_message ) {
+			return ( PS_TRX_RESULT_FAILED === $trx_status_code ) &&
+				( "Couldn't find previous transaction" === $trx_message );
+		}
+
+		/**
+		 * Determines whether the format of the merchant ID matches the ABCDEF-1234567 format
+		 *
+		 * @return bool
+		 */
+		protected function merchant_id_format_valid() {
+			return (bool) preg_match( '/^[a-zA-Z]{6}-[0-9]{7}$/', $this->gateway_merchant_id );
+		}
+
+		/**
+		 * Determines whether the response message is about invalid merchant credentials
+		 *
+		 * @param string $msg Message.
+		 * @return bool
+		 */
+		protected function merchant_credentials_invalid( $msg ) {
+			return $this->contains( $msg, 'Input variable errors' )
+				|| $this->contains( $msg, 'Invalid merchant details' );
 		}
 	}
 }

@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.17
+Paymentsense Gateway for WooCommerce 3.0.18
+
+
+## [3.0.18] - 2019-05-16
+### Added
+- Gateway settings check
+
+### Changed
+- Output of the extended module information feature
 
 
 ## [3.0.17] - 2019-04-18
