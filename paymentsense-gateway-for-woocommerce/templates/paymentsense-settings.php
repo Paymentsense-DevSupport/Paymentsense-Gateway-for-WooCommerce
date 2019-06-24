@@ -14,6 +14,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit();
 }
+
 if ( $this_ instanceof WC_Paymentsense_Hosted ) {
 	$warning = $this_::get_warning_message();
 	if ( ! empty( $warning ) ) {
@@ -35,12 +36,7 @@ if ( $this_ instanceof WC_Paymentsense_Hosted ) {
 	}
 }
 ?>
-<div id="gateway_connectivity_info_div">
-	<p id="gateway_connectivity_info_text"></p>
-</div>
-<div id="gateway_settings_info_div">
-	<p id="gateway_settings_info_text"></p>
-</div>
+<div id="ps_diagnostic_messages"></div>
 <?php
 echo '<h2>' . esc_html( $title ) . '</h2>';
 echo wp_kses_post( wpautop( $description ) );
@@ -53,25 +49,27 @@ echo wp_kses_post( wpautop( $description ) );
 </table>
 <script type="text/javascript">
 	if ( typeof jQuery !== 'undefined' ) {
-		function checkGatewayConnectivityAndSettings() {
+		jQuery( function() {
 			jQuery.get(
 				"<?php echo esc_url_raw( $module_info_url ); ?>", {}, function( result ) {
-					if ( result.status.hasOwnProperty( "msg" ) && result.status.hasOwnProperty( "class" ) ) {
-						jQuery( "#gateway_connectivity_info_text" ).html( result.status.msg );
-						jQuery( "#gateway_connectivity_info_div" ).addClass( result.status.class );
-					}
-					if ( result.settings.hasOwnProperty( "msg" ) && result.settings.hasOwnProperty( "class" ) ) {
-						jQuery( "#gateway_settings_info_text" ).html( result.settings.msg );
-						jQuery( "#gateway_settings_info_div" ).addClass( result.settings.class );
-					}
+					jQuery.each( result, function( name, data ) {
+						if ( data.hasOwnProperty( "text" ) && data.hasOwnProperty( "class" ) ) {
+							let div_id = "ps_diagnostic_message_" + name;
+							jQuery( "<div>" ).attr( "id", div_id ).appendTo( "#ps_diagnostic_messages" );
+							jQuery( "<p>" ).html( data.text ).appendTo( "#" + div_id );
+							jQuery( "#" + div_id ).addClass( data.class );
+						}
+					});
 				}
 			);
-		}
-		jQuery( function() {
-			checkGatewayConnectivityAndSettings();
 		});
 	} else {
-		document.getElementById( 'gateway_connectivity_info_text' ).innerText = 'jQuery not found. Please enable jQuery.';
-		document.getElementById( 'gateway_connectivity_info_div' ).className = 'notice notice-error';
+		let err_text = document.createTextNode("jQuery not found. Please enable jQuery.");
+		let err_para = document.createElement("p");
+		let err_div = document.createElement("div");
+		err_para.appendChild(err_text);
+		err_div.appendChild(err_para);
+		err_div.className = "<?php echo esc_html( $this_::ERROR_CLASS_NAME ); ?>";
+		document.getElementById("ps_diagnostic_messages").appendChild(err_div);
 	}
 </script>

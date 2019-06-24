@@ -184,11 +184,11 @@ msgstr "Please contact Customer Support."
 msgid "Refund was declined. "
 msgstr "Refund was declined. "
 
-msgid "Card Name"
-msgstr "Card Name"
+msgid "Cardholder’s Name"
+msgstr "Cardholders Name"
 
-msgid "Credit Card Number"
-msgstr "Credit Card Number"
+msgid "Card Number"
+msgstr "Card Number"
 
 msgid "CVV/CV2 Number"
 msgstr "CVV/CV2 Number"
@@ -196,8 +196,8 @@ msgstr "CVV/CV2 Number"
 msgid "Issue Number"
 msgstr "Issue Number"
 
-msgid "(Maestro/Solo only)."
-msgstr "(Maestro/Solo only)."
+msgid "(Maestro/Solo only)"
+msgstr "(Maestro/Solo only)"
 
 msgid "Expiration date"
 msgstr "Expiration date"

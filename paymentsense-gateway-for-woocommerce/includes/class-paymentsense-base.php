@@ -22,7 +22,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 	 *
 	 * @extends WC_Payment_Gateway
 	 */
-	class Paymentsense_Base extends WC_Payment_Gateway {
+	abstract class Paymentsense_Base extends WC_Payment_Gateway {
 
 		/**
 		 * Request Types
@@ -44,6 +44,37 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		const HPF_RESP_MID_MISSING    = 'MerchantID is missing';
 		const HPF_RESP_MID_NOT_EXISTS = 'Merchant doesn\'t exist';
 		const HPF_RESP_NO_RESPONSE    = '';
+
+		/**
+		 * CSS Class Names
+		 */
+		const SUCCESS_CLASS_NAME = 'notice notice-success';
+		const WARNING_CLASS_NAME = 'notice notice-warning';
+		const ERROR_CLASS_NAME   = 'notice notice-error';
+
+		/**
+		 * Message Types
+		 */
+		const MESSAGE_TYPE_CONNECTION  = 'connection';
+		const MESSAGE_TYPE_SETTINGS    = 'settings';
+		const MESSAGE_TYPE_SYSTEM_TIME = 'stime';
+
+		/**
+		 * System time threshold.
+		 * Specifies the maximal difference between the local time and the gateway time
+		 * in seconds where the system time is considered Ok.
+		 *
+		 * @var int
+		 */
+		protected $system_time_threshold = 300;
+
+		/**
+		 * Pairs of local and remote timestamps
+		 * Used for the determination of the system time status
+		 *
+		 * @var array
+		 */
+		protected $datetime_pairs = array();
 
 		/**
 		 * Default Payment Gateway Entry Points
@@ -195,6 +226,15 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				array_push( $this->supports, 'refunds' );
 			}
 		}
+
+		/**
+		 * Gets the message about the connection settings.
+		 *
+		 * @param bool $text_format Specifies whether the format of the message is text.
+		 *
+		 * @return array
+		 */
+		abstract public function get_connection_settings_message( $text_format );
 
 		/**
 		 * Gets payment form URL
@@ -605,7 +645,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				} else {
 					// @codingStandardsIgnoreStart
 					$ch = curl_init();
-					curl_setopt( $ch, CURLOPT_HEADER, false );
+					curl_setopt( $ch, CURLOPT_HEADER, true );
 					curl_setopt( $ch, CURLOPT_HTTPHEADER, $data['headers'] );
 					curl_setopt( $ch, CURLOPT_POST, true );
 					curl_setopt( $ch, CURLOPT_URL, $data['url'] );
@@ -615,12 +655,16 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 9 );
 					curl_setopt( $ch, CURLOPT_TIMEOUT, 12 );
-					$response = curl_exec( $ch );
-					$err_no = curl_errno( $ch );
-					$err_msg = curl_error( $ch );
-					$info = curl_getinfo( $ch );
+					$response    = curl_exec( $ch );
+					$header_size = curl_getinfo( $ch, CURLINFO_HEADER_SIZE );
+					$header      = substr( $response, 0, $header_size );
+					$response    = substr( $response, $header_size );
+					$err_no      = curl_errno( $ch );
+					$err_msg     = curl_error( $ch );
+					$info        = curl_getinfo( $ch );
 					curl_close( $ch );
 					// @codingStandardsIgnoreEnd
+					$this->add_datetime_pair( $data['url'], $this->retrieve_date( $header ) );
 				}
 			}
 			return $err_no;
@@ -1008,10 +1052,9 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Processes the request for connection information
 		 */
 		protected function process_connection_info_request() {
-			$info = array(
-				'status'   => $this->get_connection_status_message(),
-				'settings' => $this->get_connection_settings_message(),
-			);
+			$info = $this->get_connection_status_message();
+			$info = array_merge( $info, $this->get_connection_settings_message( false ) );
+			$info = array_merge( $info, $this->get_system_time_message() );
 			$this->output_info( $info );
 		}
 
@@ -1158,11 +1201,13 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		protected function get_gateway_connection_details( $connection_info ) {
 			$this->retrieve_gateway_entry_points( true );
 
-			$settings_message = $this->get_connection_settings_message();
-			$connectivity     = $this->connectivity_status ? 'Successful' : 'Fail';
-			$result           = array(
+			$settings_message   = $this->get_connection_settings_message( true );
+			$connectivity       = $this->connectivity_status ? 'Successful' : 'Fail';
+			$system_time_status = $this->get_system_time_status();
+			$result             = array(
 				'Connectivity on port 4430' => $connectivity,
-				'Gateway settings message'  => $settings_message['msg'],
+				'System Time'               => $system_time_status,
+				'Gateway settings message'  => $settings_message,
 			);
 
 			if ( $connection_info ) {
@@ -1215,60 +1260,183 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$connection_status_code = $this->get_connection_status_code();
 
 			if ( false === $connection_status_code ) {
-				$result = array(
-					'msg'   => sprintf(
+				$result = $this->build_error_connection_message(
+					sprintf(
 						// Translators: %s - diagnostic information.
 						__(
 							'Warning: The Paymentsense plugin cannot connect to the Paymentsense gateway. Please contact support providing the information below: <pre>%s</pre>',
 							'woocommerce-paymentsense'
 						),
 						$this->convert_array_to_string( $this->connection_info[ self::CONN_INFO_GGEP ] )
-					),
-					'class' => 'notice notice-error',
+					)
 				);
 			} else {
 				switch ( $connection_status_code ) {
 					case CURLE_OK:
-						$result = array(
-							'msg'   => __(
-								'Connection to Paymentsense was successful.'
-							),
-							'class' => 'notice notice-success',
+						$result = $this->build_success_connection_message(
+							__(
+								'Connection to Paymentsense was successful.',
+								'woocommerce-paymentsense'
+							)
 						);
 						break;
 					case CURLE_ABORTED_BY_CALLBACK:
-						$result = array(
-							'msg'   => __(
-								'FYI: The Paymentsense Hosted method is configured to run in safe mode. You can still take payments, but refunds will need to be done via the MMS.'
-							),
-							'class' => 'notice notice-warning',
+						$result = $this->build_warning_connection_message(
+							__(
+								'FYI: The Paymentsense Hosted method is configured to run in safe mode. You can still take payments, but refunds will need to be done via the MMS.',
+								'woocommerce-paymentsense'
+							)
 						);
 						break;
 					case CURLE_COULDNT_RESOLVE_HOST:
-						$result = array(
-							'msg'   => __(
-								'Warning: The Paymentsense plugin cannot resolve any of the Paymentsense gateway entry points. Please check your DNS resolution or contact support.'
-							),
-							'class' => 'notice notice-error',
+						$result = $this->build_error_connection_message(
+							__(
+								'Warning: The Paymentsense plugin cannot resolve any of the Paymentsense gateway entry points. Please check your DNS resolution or contact support.',
+								'woocommerce-paymentsense'
+							)
 						);
 						break;
 					case CURLE_OPERATION_TIMEDOUT:
 					case CURLE_COULDNT_CONNECT:
-						$result = array(
-							'msg'   => $this instanceof WC_Paymentsense_Hosted
+						$result = $this->build_error_connection_message(
+							$this instanceof WC_Paymentsense_Hosted
 								? __(
-									'Warning: Port 4430 seems to be closed on your server. Please open port 4430 or set the "Port 4430 is NOT open on my server" configuration setting to "Yes".'
+									'Warning: Port 4430 seems to be closed on your server. Please open port 4430 or set the "Port 4430 is NOT open on my server" configuration setting to "Yes".',
+									'woocommerce-paymentsense'
 								)
 								: __(
-									'Warning: Port 4430 seems to be closed on your server. Paymentsense Direct can NOT be used in this case. Please use Paymentsense Hosted or open port 4430.'
-								),
-							'class' => 'notice notice-error',
+									'Warning: Port 4430 seems to be closed on your server. Paymentsense Direct can NOT be used in this case. Please use Paymentsense Hosted or open port 4430.',
+									'woocommerce-paymentsense'
+								)
 						);
 						break;
 				}
 			}
 
 			return $result;
+		}
+
+		/**
+		 * Gets the system time message if the time difference exceeds the threshold
+		 *
+		 * @return array
+		 */
+		public function get_system_time_message() {
+			$result    = array();
+			$time_diff = $this->get_system_time_diff();
+			if ( is_numeric( $time_diff ) && ( abs( $time_diff ) > $this->get_system_time_threshold() ) ) {
+				$result = $this->build_error_system_time_message( $time_diff );
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Builds a localised success connection message
+		 *
+		 * @param  string $text Text message.
+		 * @return array
+		 */
+		public function build_success_connection_message( $text ) {
+			return $this->build_message( $text, self::SUCCESS_CLASS_NAME, self::MESSAGE_TYPE_CONNECTION );
+		}
+
+		/**
+		 * Builds a localised warning connection message
+		 *
+		 * @param  string $text Text message.
+		 * @return array
+		 */
+		public function build_warning_connection_message( $text ) {
+			return $this->build_message( $text, self::WARNING_CLASS_NAME, self::MESSAGE_TYPE_CONNECTION );
+		}
+
+		/**
+		 * Builds a localised error connection message
+		 *
+		 * @param  string $text Text message.
+		 * @return array
+		 */
+		public function build_error_connection_message( $text ) {
+			return $this->build_message( $text, self::ERROR_CLASS_NAME, self::MESSAGE_TYPE_CONNECTION );
+		}
+
+		/**
+		 * Builds a localised success settings message
+		 *
+		 * @param  string $text Text message.
+		 * @return array
+		 */
+		public function build_success_settings_message( $text ) {
+			return $this->build_message( $text, self::SUCCESS_CLASS_NAME, self::MESSAGE_TYPE_SETTINGS );
+		}
+
+		/**
+		 * Builds a localised warning settings message
+		 *
+		 * @param  string $text Text message.
+		 * @return array
+		 */
+		public function build_warning_settings_message( $text ) {
+			return $this->build_message( $text, self::WARNING_CLASS_NAME, self::MESSAGE_TYPE_SETTINGS );
+		}
+
+		/**
+		 * Builds a localised error settings message
+		 *
+		 * @param  string $text Text message.
+		 * @return array
+		 */
+		public function build_error_settings_message( $text ) {
+			return $this->build_message( $text, self::ERROR_CLASS_NAME, self::MESSAGE_TYPE_SETTINGS );
+		}
+
+		/**
+		 * Builds a localised error system time message
+		 *
+		 * @param  int $seconds Time difference in seconds.
+		 * @return array
+		 */
+		public function build_error_system_time_message( $seconds ) {
+			return $this->build_message(
+				sprintf(
+					// Translators: %+d - time difference in seconds.
+					__(
+						'The system time is out of sync with the gateway with %+d seconds. Please check your system time.',
+						'woocommerce-paymentsense'
+					),
+					$seconds
+				),
+				self::ERROR_CLASS_NAME,
+				self::MESSAGE_TYPE_SYSTEM_TIME
+			);
+		}
+
+		/**
+		 * Gets the text message from a settings message
+		 *
+		 * @param  array $arr Diagnostic Message.
+		 * @return string
+		 */
+		public function getSettingsTextMessage( $arr ) {
+			return $arr[ self::MESSAGE_TYPE_SETTINGS ]['text'];
+		}
+
+		/**
+		 * Builds the message shown on the admin area
+		 *
+		 * @param  string $text Text message.
+		 * @param  string $class_name CSS class name.
+		 * @param  string $message_type Diagnostic message type.
+		 * @return array
+		 */
+		private function build_message( $text, $class_name, $message_type ) {
+			return array(
+				$message_type => array(
+					'text'  => $text,
+					'class' => $class_name,
+				),
+			);
 		}
 
 		/**
@@ -1398,6 +1566,118 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		protected function merchant_credentials_invalid( $msg ) {
 			return $this->contains( $msg, 'Input variable errors' )
 				|| $this->contains( $msg, 'Invalid merchant details' );
+		}
+
+		/**
+		 * Adds a pair of a local and a remote timestamp
+		 *
+		 * @param string   $url Remote URL.
+		 * @param DateTime $remote_datetime Remote timestamp.
+		 */
+		protected function add_datetime_pair( $url, $remote_datetime ) {
+			$hostname                          = $this->get_hostname( $url );
+			$this->datetime_pairs[ $hostname ] = $this->build_datetime_pair( $remote_datetime );
+		}
+
+		/**
+		 * Gets the pairs of local and remote timestamps
+		 *
+		 * @return array
+		 */
+		protected function get_datetime_pairs() {
+			return $this->datetime_pairs;
+		}
+
+		/**
+		 * Gets the system time status
+		 *
+		 * @return string
+		 */
+		protected function get_system_time_status() {
+			$time_diff = $this->get_system_time_diff();
+			if ( is_numeric( $time_diff ) ) {
+				$result = abs( $time_diff ) <= $this->get_system_time_threshold()
+					? 'OK'
+					: sprintf( 'Out of sync with %+d seconds', $time_diff );
+			} else {
+				$result = 'Unknown';
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Gets the difference between the system time and the gateway time in seconds
+		 *
+		 * @return string
+		 */
+		protected function get_system_time_diff() {
+			$result         = null;
+			$datetime_pairs = $this->get_datetime_pairs();
+			if ( $datetime_pairs ) {
+				$datetime_pair = array_shift( $datetime_pairs );
+				$result        = $this->calculate_date_diff( $datetime_pair );
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Calculates the difference between DateTimes in seconds
+		 *
+		 * @param array $datetime_pair Pair of DateTimes.
+		 * @return int
+		 */
+		protected function calculate_date_diff( $datetime_pair ) {
+			list( $local_datetime, $remote_datetime ) = $datetime_pair;
+			return $local_datetime->format( 'U' ) - $remote_datetime->format( 'U' );
+		}
+
+		/**
+		 * Gets the system time threshold
+		 *
+		 * @return int
+		 */
+		protected function get_system_time_threshold() {
+			return $this->system_time_threshold;
+		}
+
+		/**
+		 * Retrieves the hostname from an URL
+		 *
+		 * @param string $url URL.
+		 * @return string
+		 */
+		protected function get_hostname( $url ) {
+			$parts = wp_parse_url( $url );
+			return isset( $parts['host'] ) ? strtolower( $parts['host'] ) : '';
+		}
+
+		/**
+		 * Builds a pair of a local and a remote timestamp
+		 *
+		 * @param DateTime $remote_datetime Remote timestamp.
+		 * @return array
+		 */
+		protected function build_datetime_pair( $remote_datetime ) {
+			$local_datetime = date_create();
+			return array( $local_datetime, $remote_datetime );
+		}
+
+		/**
+		 * Retrieves the value of the Date field from an HTTP header
+		 *
+		 * @param string $header HTTP header.
+		 * @return DateTime|false
+		 */
+		protected function retrieve_date( $header ) {
+			$result = false;
+			if ( preg_match( '/Date: (.*)\b/', $header, $matches ) ) {
+				$date   = strip_tags( $matches[1] );
+				$result = DateTime::createFromFormat( 'D, d M Y H:i:s e', $date );
+			}
+
+			return $result;
 		}
 	}
 }

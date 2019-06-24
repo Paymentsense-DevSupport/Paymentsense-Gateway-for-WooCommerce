@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.18
+Paymentsense Gateway for WooCommerce 3.0.19
+
+
+## [3.0.19] - 2019-06-24
+### Added
+- System time check
+
+### Changed
+- Card form layout and field labels (Paymentsense Direct)
 
 
 ## [3.0.18] - 2019-05-16

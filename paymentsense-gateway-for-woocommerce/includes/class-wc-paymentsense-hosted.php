@@ -435,6 +435,8 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 
 		/**
 		 * Processes the payment gateway response
+		 *
+		 * @throws Exception Throws exception if Order ID is empty.
 		 */
 		public function process_gateway_response() {
 			if ( $this->is_info_request() ) {
@@ -784,16 +786,18 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		/**
 		 * Gets the message about the connection settings.
 		 *
+		 * @param bool $text_format Specifies whether the format of the message is text.
+		 *
 		 * @return array
 		 */
-		public function get_connection_settings_message() {
+		public function get_connection_settings_message( $text_format ) {
 			$result = array();
 			if ( ! $this->merchant_id_format_valid() ) {
-				$result = array(
-					'msg'   => __(
-						'Gateway MerchantID is invalid. Please make sure the Gateway MerchantID matches the ABCDEF-1234567 format.'
-					),
-					'class' => 'notice notice-error',
+				$result = $this->build_error_settings_message(
+					__(
+						'Gateway MerchantID is invalid. Please make sure the Gateway MerchantID matches the ABCDEF-1234567 format.',
+						'woocommerce-paymentsense'
+					)
 				);
 			} else {
 				$merchant_credentials_valid = null;
@@ -815,72 +819,77 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 				$gateway_settings_response = $this->check_gateway_settings();
 				switch ( $gateway_settings_response ) {
 					case self::HPF_RESP_OK:
-						$result = array(
-							'msg'   => __(
-								'Gateway MerchantID, Gateway Password, Gateway PreSharedKey and Gateway Hash Method are valid.'
-							),
-							'class' => 'notice notice-success',
+						$result = $this->build_success_settings_message(
+							__(
+								'Gateway MerchantID, Gateway Password, Gateway PreSharedKey and Gateway Hash Method are valid.',
+								'woocommerce-paymentsense'
+							)
 						);
 						break;
 					case self::HPF_RESP_MID_MISSING:
 					case self::HPF_RESP_MID_NOT_EXISTS:
-						$result = array(
-							'msg'   => __(
-								'Gateway MerchantID is invalid.'
-							),
-							'class' => 'notice notice-error',
+						$result = $this->build_error_settings_message(
+							__(
+								'Gateway MerchantID is invalid.',
+								'woocommerce-paymentsense'
+							)
 						);
 						break;
 					case self::HPF_RESP_HASH_INVALID:
 						if ( true === $merchant_credentials_valid ) {
-							$result = array(
-								'msg'   => __(
-									'Gateway PreSharedKey or/and Gateway Hash Method are invalid.'
-								),
-								'class' => 'notice notice-error',
+							$result = $this->build_error_settings_message(
+								__(
+									'Gateway PreSharedKey or/and Gateway Hash Method are invalid.',
+									'woocommerce-paymentsense'
+								)
 							);
 						} elseif ( false === $merchant_credentials_valid ) {
-							$result = array(
-								'msg'   => __(
-									'Gateway Password is invalid.'
-								),
-								'class' => 'notice notice-error',
+							$result = $this->build_error_settings_message(
+								__(
+									'Gateway Password is invalid.',
+									'woocommerce-paymentsense'
+								)
 							);
 						} else {
-							$result = array(
-								'msg'   => __(
-									'Gateway Password, Gateway PreSharedKey or/and Gateway Hash Method are invalid.'
-								),
-								'class' => 'notice notice-error',
+							$result = $this->build_error_settings_message(
+								__(
+									'Gateway Password, Gateway PreSharedKey or/and Gateway Hash Method are invalid.',
+									'woocommerce-paymentsense'
+								)
 							);
 						}
 						break;
 					case self::HPF_RESP_NO_RESPONSE:
 						if ( true === $merchant_credentials_valid ) {
-							$result = array(
-								'msg'   => __(
-									'Gateway PreSharedKey and Gateway Hash Method cannot be validated at this time.'
-								),
-								'class' => 'notice notice-warning',
+							$result = $this->build_warning_settings_message(
+								__(
+									'Gateway PreSharedKey and Gateway Hash Method cannot be validated at this time.',
+									'woocommerce-paymentsense'
+								)
 							);
 						} elseif ( false === $merchant_credentials_valid ) {
-							$result = array(
-								'msg'   => __(
-									'Gateway MerchantID or/and Gateway Password are invalid.'
-								),
-								'class' => 'notice notice-error',
+							$result = $this->build_error_settings_message(
+								__(
+									'Gateway MerchantID or/and Gateway Password are invalid.',
+									'woocommerce-paymentsense'
+								)
 							);
 						} else {
-							$result = array(
-								'msg'   => __(
-									'The gateway settings cannot be validated at this time.'
-								),
-								'class' => 'notice notice-warning',
+							$result = $this->build_warning_settings_message(
+								__(
+									'The gateway settings cannot be validated at this time.',
+									'woocommerce-paymentsense'
+								)
 							);
 						}
 						break;
 				}
 			}
+
+			if ( $text_format ) {
+				$result = $this->getSettingsTextMessage( $result );
+			}
+
 			return $result;
 		}
 	}
