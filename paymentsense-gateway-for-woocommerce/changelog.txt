@@ -1,5 +1,10 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.19
+Paymentsense Gateway for WooCommerce 3.0.20
+
+
+## [3.0.20] - 2019-08-12
+### Added
+- Support of all currencies as per the ISO 4217
 
 
 ## [3.0.19] - 2019-06-24
