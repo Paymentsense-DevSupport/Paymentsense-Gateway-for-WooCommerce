@@ -143,15 +143,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		protected $order_prefix;
 
 		/**
-		 * Incompatible Plugins
-		 *
-		 * @var array
-		 */
-		protected $incompatible_plugins = array(
-			'woocommerce-sequential-order-numbers' => 'WooCommerce Sequential Order Numbers',
-		);
-
-		/**
 		 * Plugin Data
 		 *
 		 * @var array
@@ -953,11 +944,15 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @param string $field HTTP POST/GET variable.
 		 * @param string $default Default value.
+		 * @param string $method Request method.
 		 * @return string
 		 */
-		protected function get_http_var( $field, $default = '' ) {
+		protected function get_http_var( $field, $default = '', $method = '' ) {
 			// @codingStandardsIgnoreStart
-			switch ( $_SERVER['REQUEST_METHOD'] ) {
+			if ( empty( $method ) ) {
+				$method = $_SERVER['REQUEST_METHOD'];
+			}
+			switch ( $method ) {
 				case 'GET':
 					return array_key_exists( $field, $_GET )
 						? $_GET[ $field ]
@@ -994,12 +989,21 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
+		 * Checks whether the request is for file checksums
+		 *
+		 * @return  bool
+		 */
+		protected function is_checksums_request() {
+			return 'checksums' === $this->get_http_var( 'action', '', 'GET' );
+		}
+
+		/**
 		 * Checks whether the request is for connection information
 		 *
 		 * @return  bool
 		 */
 		protected function is_connection_info_request() {
-			return 'connection_info' === $this->get_http_var( 'action', '' );
+			return 'connection_info' === $this->get_http_var( 'action', '', 'GET' );
 		}
 
 		/**
@@ -1028,6 +1032,17 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 
 				$info = array_merge( $info, $extended_info );
 			}
+
+			$this->output_info( $info );
+		}
+
+		/**
+		 * Processes the request for file checksums
+		 */
+		protected function process_checksums_request() {
+			$info = array(
+				'Checksums' => $this->get_file_checksums(),
+			);
 
 			$this->output_info( $info );
 		}
@@ -1064,7 +1079,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @param array $info Module information.
 		 */
 		private function output_info( $info ) {
-			$output       = $this->get_http_var( 'output', 'text' );
+			$output       = $this->get_http_var( 'output', 'text', 'GET' );
 			$content_type = array_key_exists( $output, $this->content_types )
 				? $this->content_types[ $output ]
 				: TYPE_TEXT_PLAIN;
@@ -1677,6 +1692,26 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				$result = DateTime::createFromFormat( 'D, d M Y H:i:s e', $date );
 			}
 
+			return $result;
+		}
+
+		/**
+		 * Gets file checksums
+		 *
+		 * @return array
+		 */
+		protected function get_file_checksums() {
+			$result    = array();
+			$root_path = realpath( __DIR__ . '/../../../..' );
+			$file_list = $this->get_http_var( 'data', '', 'POST' );
+			if ( is_array( $file_list ) ) {
+				foreach ( $file_list as $key => $file ) {
+					$filename       = $root_path . '/' . $file;
+					$result[ $key ] = is_file( $filename )
+						? sha1_file( $filename )
+						: null;
+				}
+			}
 			return $result;
 		}
 	}

@@ -520,6 +520,10 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 				$this->process_info_request();
 			}
 
+			if ( $this->is_checksums_request() ) {
+				$this->process_checksums_request();
+			}
+
 			if ( $this->is_connection_info_request() ) {
 				$this->process_connection_info_request();
 			}
