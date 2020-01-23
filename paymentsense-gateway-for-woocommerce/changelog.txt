@@ -1,5 +1,10 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.23
+Paymentsense Gateway for WooCommerce 3.0.24
+
+
+## [3.0.24] - 2020-01-23
+### Changed
+- "WC tested up to" tag to 3.9.0
 
 
 ## [3.0.23] - 2019-12-11
