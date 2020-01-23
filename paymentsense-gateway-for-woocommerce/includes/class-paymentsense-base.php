@@ -1569,7 +1569,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @return bool
 		 */
 		protected function merchant_id_format_valid() {
-			return (bool) preg_match( '/^[a-zA-Z]{6}-[0-9]{7}$/', $this->gateway_merchant_id );
+			return (bool) preg_match( '/^\S+-\S+$/', $this->gateway_merchant_id );
 		}
 
 		/**
@@ -1641,11 +1641,15 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Calculates the difference between DateTimes in seconds
 		 *
 		 * @param array $datetime_pair Pair of DateTimes.
-		 * @return int
+		 * @return int/false
 		 */
 		protected function calculate_date_diff( $datetime_pair ) {
+			$result = false;
 			list( $local_datetime, $remote_datetime ) = $datetime_pair;
-			return $local_datetime->format( 'U' ) - $remote_datetime->format( 'U' );
+			if ( false !== $remote_datetime ) {
+				$result = $local_datetime->format( 'U' ) - $remote_datetime->format( 'U' );
+			}
+			return $result;
 		}
 
 		/**

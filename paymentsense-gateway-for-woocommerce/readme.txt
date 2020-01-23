@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 5.3
-Stable tag: 3.0.24
+Stable tag: 3.0.25
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -117,6 +117,6 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.24] - 2020-01-23
+## [3.0.25] - 2020-01-23
 ### Changed
-- "WC tested up to" tag to 3.9.0
+- MerchantID validation format
