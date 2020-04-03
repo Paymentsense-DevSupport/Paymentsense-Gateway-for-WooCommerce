@@ -183,10 +183,12 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'default'     => 'SHA1',
 					'desc_tip'    => true,
 					'options'     => array(
-						'SHA1'     => 'SHA1',
-						'MD5'      => 'MD5',
-						'HMACSHA1' => 'HMACSHA1',
-						'HMACMD5'  => 'HMACMD5',
+						'SHA1'       => 'SHA1',
+						'MD5'        => 'MD5',
+						'HMACSHA1'   => 'HMACSHA1',
+						'HMACMD5'    => 'HMACMD5',
+						'HMACSHA256' => 'HMACSHA256',
+						'HMACSHA512' => 'HMACSHA512',
 					),
 				),
 

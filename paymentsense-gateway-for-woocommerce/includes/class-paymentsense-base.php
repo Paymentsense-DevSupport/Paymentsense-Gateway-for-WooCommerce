@@ -346,11 +346,10 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 *
 		 * @param  WC_Order $order WooCommerce order object.
 		 * @param  string   $field_name WooCommerce order field name.
-		 * @param  bool     $strip_invalid_chars Flag indicating whether the invalid chars should be stripped.
 		 *
 		 * @return string
 		 */
-		protected function get_order_property( $order, $field_name, $strip_invalid_chars = false ) {
+		protected function get_order_property( $order, $field_name ) {
 			switch ( $field_name ) {
 				case 'completed_date':
 					$result = $order->get_date_completed() ? gmdate( 'Y-m-d H:i:s', $order->get_date_completed()->getOffsetTimestamp() ) : '';
@@ -388,8 +387,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					$result = get_option( 'woocommerce_tax_display_cart' );
 					break;
 				case 'display_totals_ex_tax':
-					$result = 'excl' === get_option( 'woocommerce_tax_display_cart' );
-					break;
 				case 'display_cart_ex_tax':
 					$result = 'excl' === get_option( 'woocommerce_tax_display_cart' );
 					break;
@@ -430,10 +427,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 						$result = get_post_meta( $order->get_id(), '_' . $field_name, true );
 					}
 					break;
-			}
-
-			if ( $strip_invalid_chars ) {
-				$result = $this->strip_invalid_chars( $result );
 			}
 
 			return $result;
@@ -494,12 +487,22 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		protected function build_hpf_fields( $order = null ) {
 			$fields = $order ? $this->build_payment_fields( $order ) : $this->build_sample_payment_fields();
-			$data   = 'MerchantID=' . $this->gateway_merchant_id;
-			$data  .= '&Password=' . $this->gateway_password;
+
+			$fields = array_map(
+				function ( $value ) {
+					return null === $value ? '' : $this->filter_unsupported_chars( $value );
+				},
+				$fields
+			);
+
+			$fields = $this->apply_length_restrictions( $fields );
+
+			$data  = 'MerchantID=' . $this->gateway_merchant_id;
+			$data .= '&Password=' . $this->gateway_password;
 
 			foreach ( $fields as $key => $value ) {
 				$data .= '&' . $key . '=' . $value;
-			};
+			}
 
 			if ( $this instanceof WC_Paymentsense_Direct ) {
 				// assigns SHA1 for the calculation of a dummy hash_digest for the purpose of validating the gateway settings.
@@ -513,15 +516,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				'MerchantID' => $this->gateway_merchant_id,
 			);
 
-			$fields = array_merge( $additional_fields, $fields );
-			$fields = array_map(
-				function( $value ) {
-					return str_replace( '"', '\"', $value );
-				},
-				$fields
-			);
-
-			return $fields;
+			return array_merge( $additional_fields, $fields );
 		}
 
 		/**
@@ -539,20 +534,20 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				'TransactionDateTime'       => date( 'Y-m-d H:i:s P' ),
 				'CallbackURL'               => WC()->api_request_url( get_class( $this ), is_ssl() ),
 				'OrderDescription'          => $this->order_prefix . $order->get_order_number(),
-				'CustomerName'              => $this->get_order_property( $order, 'billing_first_name', true ) . ' ' .
-					$this->get_order_property( $order, 'billing_last_name', true ),
-				'Address1'                  => $this->get_order_property( $order, 'billing_address_1', true ),
-				'Address2'                  => $this->get_order_property( $order, 'billing_address_2', true ),
+				'CustomerName'              => $this->get_order_property( $order, 'billing_first_name' ) . ' ' .
+					$this->get_order_property( $order, 'billing_last_name' ),
+				'Address1'                  => $this->get_order_property( $order, 'billing_address_1' ),
+				'Address2'                  => $this->get_order_property( $order, 'billing_address_2' ),
 				'Address3'                  => '',
 				'Address4'                  => '',
-				'City'                      => $this->get_order_property( $order, 'billing_city', true ),
-				'State'                     => $this->get_order_property( $order, 'billing_state', true ),
-				'PostCode'                  => $this->get_order_property( $order, 'billing_postcode', true ),
+				'City'                      => $this->get_order_property( $order, 'billing_city' ),
+				'State'                     => $this->get_order_property( $order, 'billing_state' ),
+				'PostCode'                  => $this->get_order_property( $order, 'billing_postcode' ),
 				'CountryCode'               => get_country_iso_code(
-					$this->get_order_property( $order, 'billing_country', true )
+					$this->get_order_property( $order, 'billing_country' )
 				),
-				'EmailAddress'              => $this->get_order_property( $order, 'billing_email', true ),
-				'PhoneNumber'               => $this->get_order_property( $order, 'billing_phone', true ),
+				'EmailAddress'              => $this->get_order_property( $order, 'billing_email' ),
+				'PhoneNumber'               => $this->get_order_property( $order, 'billing_phone' ),
 				'EmailAddressEditable'      => $this->get_option( 'email_address_editable' ),
 				'PhoneNumberEditable'       => $this->get_option( 'phone_number_editable' ),
 				'CV2Mandatory'              => 'true',
@@ -849,18 +844,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Strips invalid chars from a string
-		 *
-		 * @param string $subject The string.
-		 * @return string
-		 */
-		protected function strip_invalid_chars( $subject ) {
-			$search  = array( '<', '&' );
-			$replace = array( '', '&amp;' );
-			return str_replace( $search, $replace, $subject );
-		}
-
-		/**
 		 * Generates output using template
 		 *
 		 * @param string $template_name Template filename.
@@ -887,7 +870,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 
 		/**
 		 * Calculates the hash digest.
-		 * Supported hash methods: MD5, SHA1, HMACMD5, HMACSHA1
+		 * Supported hash methods: MD5, SHA1, HMACMD5, HMACSHA1, HMACSHA256 and HMACSHA512
 		 *
 		 * @param string $data Data to be hashed.
 		 * @param string $hash_method Hash method.
@@ -915,6 +898,12 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					break;
 				case 'HMACSHA1':
 					$result = hash_hmac( 'sha1', $data, $key );
+					break;
+				case 'HMACSHA256':
+					$result = hash_hmac( 'sha256', $data, $key );
+					break;
+				case 'HMACSHA512':
+					$result = hash_hmac( 'sha512', $data, $key );
 					break;
 			}
 
@@ -1645,10 +1634,12 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		protected function calculate_date_diff( $datetime_pair ) {
 			$result = false;
+
 			list( $local_datetime, $remote_datetime ) = $datetime_pair;
 			if ( false !== $remote_datetime ) {
 				$result = $local_datetime->format( 'U' ) - $remote_datetime->format( 'U' );
 			}
+
 			return $result;
 		}
 
@@ -1715,6 +1706,81 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 						? sha1_file( $filename )
 						: null;
 				}
+			}
+			return $result;
+		}
+
+		/**
+		 * Converts HTML entities to their corresponding characters and replaces the chars that are not supported
+		 * by the gateway with supported ones
+		 *
+		 * @param string $data A value of a variable sent to the Hosted Payment Form.
+		 * @param bool   $replace_ampersand Flag for replacing the "ampersand" (&) character.
+		 * @return string
+		 */
+		protected function filter_unsupported_chars( $data, $replace_ampersand = false ) {
+			$data = $this->html_decode( $data );
+			if ( $replace_ampersand ) {
+				$data = $this->replace_ampersand( $data );
+			}
+			return str_replace(
+				[ '"', '\'', '\\', '<', '>', '[', ']' ],
+				[ '`', '`', '/', '(', ')', '(', ')' ],
+				$data
+			);
+		}
+
+		/**
+		 * Converts HTML entities to their corresponding characters
+		 *
+		 * @param string $data A value of a variable sent to the Hosted Payment Form.
+		 * @return string
+		 */
+		protected function html_decode( $data ) {
+			return str_replace(
+				[ '&quot;', '&apos;', '&#039;', '&amp;' ],
+				[ '"', '\'', '\'', '&' ],
+				$data
+			);
+		}
+
+		/**
+		 * Replaces the "ampersand" (&) character with the "at" character (@).
+		 * Required for Paymentsense Direct.
+		 *
+		 * @param string $data A value of a variable sent to the Hosted Payment Form.
+		 * @return string
+		 */
+		protected function replace_ampersand( $data ) {
+			return str_replace( '&', '@', $data );
+		}
+
+		/**
+		 * Applies the gateway's restrictions on the length of selected alphanumeric fields sent to the HPF
+		 *
+		 * @param array $data The variables sent to the Hosted Payment Form.
+		 * @return array
+		 */
+		protected function apply_length_restrictions( $data ) {
+			$result      = [];
+			$mex_lengths = [
+				'OrderDescription' => 256,
+				'CustomerName'     => 100,
+				'CardName'         => 100,
+				'Address1'         => 100,
+				'Address2'         => 50,
+				'Address3'         => 50,
+				'Address4'         => 50,
+				'City'             => 50,
+				'State'            => 50,
+				'PostCode'         => 50,
+				'EmailAddress'     => 100,
+				'PhoneNumber'      => 30,
+			];
+			foreach ( $data as $key => $value ) {
+				$result[ $key ] = array_key_exists( $key, $mex_lengths )
+					? substr( $value, 0, $mex_lengths[ $key ] )
+					: $value;
 			}
 			return $result;
 		}

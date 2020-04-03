@@ -1,5 +1,17 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.25
+Paymentsense Gateway for WooCommerce 3.0.26
+
+
+## [3.0.26] - 2020-04-02
+### Added
+- Multisite support
+- HMACSHA256 and HMACSHA512 hash methods (Paymentsense Hosted)
+- Filter for characters not supported by the gateway
+- Length restriction of fields sent to the gateway
+
+### Changed
+- "Tested up to" tag to 5.4
+- "WC tested up to" tag to 4.0.1
 
 
 ## [3.0.25] - 2020-01-23

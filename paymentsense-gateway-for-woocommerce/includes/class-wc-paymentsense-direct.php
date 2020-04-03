@@ -290,27 +290,36 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'TransactionType'  => $this->gateway_transaction_type,
 					'OrderID'          => $order_id,
 					'OrderDescription' => $this->order_prefix . (string) $order_id,
-					'CardName'         => $this->strip_invalid_chars( wc_get_post_data_by_key( 'psense_ccname' ) ),
+					'CardName'         => wc_get_post_data_by_key( 'psense_ccname' ),
 					'CardNumber'       => wc_get_post_data_by_key( 'psense_ccnum' ),
 					'ExpMonth'         => wc_get_post_data_by_key( 'psense_expmonth' ),
 					'ExpYear'          => wc_get_post_data_by_key( 'psense_expyear' ),
 					'CV2'              => wc_get_post_data_by_key( 'psense_cv2' ),
 					'IssueNumber'      => wc_get_post_data_by_key( 'psense_issueno' ),
-					'Address1'         => $this->get_order_property( $order, 'billing_address_1', true ),
-					'Address2'         => $this->get_order_property( $order, 'billing_address_2', true ),
+					'Address1'         => $this->get_order_property( $order, 'billing_address_1' ),
+					'Address2'         => $this->get_order_property( $order, 'billing_address_2' ),
 					'Address3'         => '',
 					'Address4'         => '',
-					'City'             => $this->get_order_property( $order, 'billing_city', true ),
-					'State'            => $this->get_order_property( $order, 'billing_state', true ),
-					'Postcode'         => $this->get_order_property( $order, 'billing_postcode', true ),
+					'City'             => $this->get_order_property( $order, 'billing_city' ),
+					'State'            => $this->get_order_property( $order, 'billing_state' ),
+					'Postcode'         => $this->get_order_property( $order, 'billing_postcode' ),
 					'CountryCode'      => get_country_iso_code(
-						$this->get_order_property( $order, 'billing_country', true )
+						$this->get_order_property( $order, 'billing_country' )
 					),
-					'EmailAddress'     => $this->get_order_property( $order, 'billing_email', true ),
-					'PhoneNumber'      => $this->get_order_property( $order, 'billing_phone', true ),
+					'EmailAddress'     => $this->get_order_property( $order, 'billing_email' ),
+					'PhoneNumber'      => $this->get_order_property( $order, 'billing_phone' ),
 					// @codingStandardsIgnoreLine
 					'IPAddress'        => $_SERVER['REMOTE_ADDR'],
 				);
+
+				$xml_data = array_map(
+					function ( $value ) {
+						return null === $value ? '' : $this->filter_unsupported_chars( $value, true );
+					},
+					$xml_data
+				);
+
+				$xml_data = $this->apply_length_restrictions( $xml_data );
 
 				$headers = array(
 					'SOAPAction:https://www.thepaymentgateway.net/CardDetailsTransaction',
@@ -490,7 +499,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 
 			$term_url = add_query_arg(
 				array(
-					'key'       => $this->get_order_property( $order, 'order_key', true ),
+					'key'       => $this->get_order_property( $order, 'order_key' ),
 					'order-pay' => $order_id,
 				),
 				WC()->api_request_url( get_class( $this ), is_ssl() )
