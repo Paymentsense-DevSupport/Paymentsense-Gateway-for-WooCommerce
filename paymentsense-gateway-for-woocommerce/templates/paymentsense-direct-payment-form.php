@@ -61,15 +61,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</tr>
 	<tr>
 		<td>
-			<label for="psense_issueno"><?php esc_html_e( 'Issue Number', 'woocommerce-paymentsense' ); ?>:</label>
-		</td>
-		<td>
-			<input type="text" class="input-text paymentsense-reduced-width" id="psense_issueno" name="psense_issueno" autocomplete="off" />
-			<span class="paymentsense-small"><?php esc_html_e( '(Maestro/Solo only)', 'woocommerce-paymentsense' ); ?></span>
-		</td>
-	</tr>
-	<tr>
-		<td>
 			<label for="psense_expmonth"><?php esc_html_e( 'Expiration date', 'woocommerce-paymentsense' ); ?>: <span class="required">*</span></label>
 			<label for="psense_expyear"></label>
 		</td>

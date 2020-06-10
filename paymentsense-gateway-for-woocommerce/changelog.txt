@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.27
+Paymentsense Gateway for WooCommerce 3.0.28
+
+
+## [3.0.28] - 2020-06-10
+### Removed
+- Issue number from the card payment form (Paymentsense Direct)
+
+### Changed
+- "WC tested up to" tag to 4.2.0
 
 
 ## [3.0.27] - 2020-05-18

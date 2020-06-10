@@ -193,12 +193,6 @@ msgstr "Card Number"
 msgid "CVV/CV2 Number"
 msgstr "CVV/CV2 Number"
 
-msgid "Issue Number"
-msgstr "Issue Number"
-
-msgid "(Maestro/Solo only)"
-msgstr "(Maestro/Solo only)"
-
 msgid "Expiration date"
 msgstr "Expiration date"
 

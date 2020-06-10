@@ -295,7 +295,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'ExpMonth'         => wc_get_post_data_by_key( 'psense_expmonth' ),
 					'ExpYear'          => wc_get_post_data_by_key( 'psense_expyear' ),
 					'CV2'              => wc_get_post_data_by_key( 'psense_cv2' ),
-					'IssueNumber'      => wc_get_post_data_by_key( 'psense_issueno' ),
+					'IssueNumber'      => '',
 					'Address1'         => $this->get_order_property( $order, 'billing_address_1' ),
 					'Address2'         => $this->get_order_property( $order, 'billing_address_2' ),
 					'Address3'         => '',
