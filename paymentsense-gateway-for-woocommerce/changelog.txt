@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.28
+Paymentsense Gateway for WooCommerce 3.0.29
+
+
+## [3.0.29] - 2020-07-28
+### Added
+- Order note on successful refunds
+
+### Changed
+- "WC tested up to" tag to 4.3.1
 
 
 ## [3.0.28] - 2020-06-10

@@ -184,6 +184,9 @@ msgstr "Please contact Customer Support."
 msgid "Refund was declined. "
 msgstr "Refund was declined. "
 
+msgid "Refund for %1$.2f %2$s processed successfully."
+msgstr "Refund for %1$.2f %2$s processed successfully."
+
 msgid "Cardholder’s Name"
 msgstr "Cardholder’s Name"
 

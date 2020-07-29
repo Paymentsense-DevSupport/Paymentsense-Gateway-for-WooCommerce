@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 5.4
-Stable tag: 3.0.28
+Stable tag: 3.0.29
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -32,7 +32,7 @@ Direct on the other hand means that during the checkout process the customer ent
 
 * PHP version 5.6.0 or greater. An actively supported version is recommended.
 * WordPress 4.4 or greater (tested up to 5.4)
-* WooCommerce 3.0.9 or greater (tested up to 4.2.0)
+* WooCommerce 3.0.9 or greater (tested up to 4.3.1)
 * jQuery 1.12.4 or greater (part of WordPress core)
 * Open outbound port 4430 in order to use the Direct Method and for perform online refunds
 * PCI-certified server using SSL/TLS in order to use the Direct Method
@@ -87,9 +87,9 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 = Activation and configuration of the Paymentsense Hosted Gateway =
 
-1. Go to "WooCommerce" -> "Settings" -> "Checkout".
+1. Go to "WooCommerce" -> "Settings" -> "Payments".
 
-2. Click on the Paymentsense Hosted Gateway.
+2. Click the "Manage" button for the Paymentsense Hosted Gateway.
 
 3. Check the "Enable Paymentsense Hosted" checkbox.
 
@@ -102,9 +102,9 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 = Activation and configuration of the Paymentsense Direct Gateway =
 
-1. Go to "WooCommerce" -> "Settings" -> "Checkout".
+1. Go to "WooCommerce" -> "Settings" -> "Payments".
 
-2. Click on the Paymentsense Direct Gateway.
+2. Click the "Manage" button for the Paymentsense Direct Gateway.
 
 3. Check the "Enable Paymentsense Direct" checkbox.
 
@@ -117,9 +117,9 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.28] - 2020-06-10
-### Removed
-- Issue number from the card payment form (Paymentsense Direct)
+## [3.0.29] - 2020-07-28
+### Added
+- Order note on successful refunds
 
 ### Changed
-- "WC tested up to" tag to 4.2.0
+- "WC tested up to" tag to 4.3.1

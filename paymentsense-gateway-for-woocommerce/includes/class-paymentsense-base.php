@@ -840,6 +840,17 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				return new WP_Error( 'refund_error', __( 'Refund was declined. ', 'woocommerce-paymentsense' ) . $trx_message );
 			}
 
+			$order = new WC_Order( $order_id );
+			if ( $order->get_id() ) {
+				$order_note = sprintf(
+					// Translators: %1$s - order amount, %2$s - currency.
+					__( 'Refund for %1$.2f %2$s processed successfully.', 'woocommerce-paymentsense' ),
+					$amount,
+					get_woocommerce_currency()
+				);
+				$order->add_order_note( $order_note );
+			}
+
 			return true;
 		}
 
@@ -1714,7 +1725,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Converts HTML entities to their corresponding characters and replaces the chars that are not supported
 		 * by the gateway with supported ones
 		 *
-		 * @param string $data A value of a variable sent to the Hosted Payment Form.
+		 * @param string $data A value of a variable sent to the payment gateway.
 		 * @param bool   $replace_ampersand Flag for replacing the "ampersand" (&) character.
 		 * @return string
 		 */
@@ -1733,7 +1744,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		/**
 		 * Converts HTML entities to their corresponding characters
 		 *
-		 * @param string $data A value of a variable sent to the Hosted Payment Form.
+		 * @param string $data A value of a variable sent to the payment gateway.
 		 * @return string
 		 */
 		protected function html_decode( $data ) {
@@ -1748,7 +1759,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * Replaces the "ampersand" (&) character with the "at" character (@).
 		 * Required for Paymentsense Direct.
 		 *
-		 * @param string $data A value of a variable sent to the Hosted Payment Form.
+		 * @param string $data A value of a variable sent to the payment gateway.
 		 * @return string
 		 */
 		protected function replace_ampersand( $data ) {
@@ -1756,14 +1767,14 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Applies the gateway's restrictions on the length of selected alphanumeric fields sent to the HPF
+		 * Applies the gateway's restrictions on the length of selected alphanumeric fields sent to the payment gateway
 		 *
-		 * @param array $data The variables sent to the Hosted Payment Form.
+		 * @param array $data The variables sent to the payment gateway.
 		 * @return array
 		 */
 		protected function apply_length_restrictions( $data ) {
 			$result      = [];
-			$mex_lengths = [
+			$max_lengths = [
 				'OrderDescription' => 256,
 				'CustomerName'     => 100,
 				'CardName'         => 100,
@@ -1778,8 +1789,8 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				'PhoneNumber'      => 30,
 			];
 			foreach ( $data as $key => $value ) {
-				$result[ $key ] = array_key_exists( $key, $mex_lengths )
-					? substr( $value, 0, $mex_lengths[ $key ] )
+				$result[ $key ] = array_key_exists( $key, $max_lengths )
+					? substr( $value, 0, $max_lengths[ $key ] )
 					: $value;
 			}
 			return $result;
