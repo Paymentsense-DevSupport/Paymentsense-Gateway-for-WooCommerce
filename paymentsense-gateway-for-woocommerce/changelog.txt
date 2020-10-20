@@ -1,5 +1,16 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.30
+Paymentsense Gateway for WooCommerce 3.0.31
+
+
+## [3.0.31] - 2020-10-20
+### Added
+- gw3 gateway entry point
+
+### Changed
+- "WC tested up to" tag to 4.6.0
+
+### Removed
+- Dynamic gateway entry points configuration
 
 
 ## [3.0.30] - 2020-08-17

@@ -77,21 +77,15 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		protected $datetime_pairs = array();
 
 		/**
-		 * Default Payment Gateway Entry Points
-		 *
-		 * @var array
-		 */
-		protected static $default_gateway_entry_points = array(
-			'https://gw1.paymentsensegateway.com:4430',
-			'https://gw2.paymentsensegateway.com:4430',
-		);
-
-		/**
 		 * Payment Gateway Entry Points
 		 *
 		 * @var array
 		 */
-		protected static $gateway_entry_points = array();
+		protected $gateway_entry_points = array(
+			'https://gw1.paymentsensegateway.com:4430',
+			'https://gw2.paymentsensegateway.com:4430',
+			'https://gw3.paymentsensegateway.com:4430',
+		);
 
 		/**
 		 * Payment Gateway Merchant ID
@@ -237,27 +231,10 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Sets payment gateway entry points
-		 */
-		protected function set_gateway_entry_points() {
-			$gateway_entry_points       = $this->retrieve_gateway_entry_points();
-			self::$gateway_entry_points = is_array( $gateway_entry_points ) && ! empty( $gateway_entry_points )
-				? $gateway_entry_points
-				: self::$default_gateway_entry_points;
-		}
-
-		/**
 		 * Gets payment gateway entry points
 		 */
 		protected function get_gateway_entry_points() {
-
-			if ( empty( self::$gateway_entry_points ) ) {
-				$this->set_gateway_entry_points();
-			}
-
-			return is_array( self::$gateway_entry_points ) && ! empty( self::$gateway_entry_points )
-				? self::$gateway_entry_points
-				: self::$default_gateway_entry_points;
+			return $this->gateway_entry_points;
 		}
 
 		/**
@@ -465,21 +442,6 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Gets the value of the GatewayEntryPoint elements from an XML document
-		 *
-		 * @param string $xml XML document.
-		 *
-		 * @return array
-		 */
-		protected function get_xml_gateway_entry_points( $xml ) {
-			$result = array();
-			if ( preg_match_all( '#<GatewayEntryPoint EntryPointURL="(.+)" Metric="(.+)" />#iU', $xml, $matches ) ) {
-				$result = $matches[1];
-			}
-			return $result;
-		}
-
-		/**
 		 * Builds the fields for the Hosted Payment Form as an associative array
 		 *
 		 * @param  WC_Order $order WooCommerce order object.
@@ -657,13 +619,11 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Retrieves the gateway entry points
+		 * Performs a test transaction (GetGatewayEntryPoints) for diagnostic purposes
 		 *
-		 * @param bool $force_transaction forces the transaction disregarding the disable_comm_on_port_4430 setting.
-		 *
-		 * @return array|WP_Error
+		 * @return bool
 		 */
-		public function retrieve_gateway_entry_points( $force_transaction = false ) {
+		public function perform_test_transaction() {
 			$xml_data = array(
 				'MerchantID' => $this->gateway_merchant_id,
 				'Password'   => $this->gateway_password,
@@ -690,9 +650,8 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 			$max_attempts    = 1;
 			$trx_status_code = null;
 			$valid_response  = false;
-			$result          = array();
 
-			$gateways       = self::$default_gateway_entry_points;
+			$gateways       = $this->get_gateway_entry_points();
 			$gateways_count = count( $gateways );
 
 			while ( ! $valid_response && $gateway_id < $gateways_count && $trans_attempt <= $max_attempts ) {
@@ -702,14 +661,13 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					'xml'     => $xml,
 				);
 
-				$curl_errno = $this->send_transaction( $data, $response, $info, $curl_errmsg, $force_transaction );
+				$curl_errno = $this->send_transaction( $data, $response, $info, $curl_errmsg, true );
 				if ( 0 === $curl_errno ) {
 					$trx_status_code = $this->get_xml_value( 'StatusCode', $response, '[0-9]+' );
 
 					if ( is_numeric( $trx_status_code ) ) {
 						if ( PS_TRX_RESULT_FAILED !== $trx_status_code ) {
 							$valid_response = true;
-							$result         = $this->get_xml_gateway_entry_points( $response );
 							if ( PS_TRX_RESULT_SUCCESS === $trx_status_code ) {
 								$this->merchant_credentials_valid = true;
 							}
@@ -738,7 +696,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 					$gateway_id++;
 				}
 			}
-			return $result;
+			return $valid_response;
 		}
 
 		/**
@@ -1214,7 +1172,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 * @return array
 		 */
 		protected function get_gateway_connection_details( $connection_info ) {
-			$this->retrieve_gateway_entry_points( true );
+			$this->perform_test_transaction();
 
 			$settings_message   = $this->get_connection_settings_message( true );
 			$connectivity       = $this->connectivity_status ? 'Successful' : 'Fail';
@@ -1239,7 +1197,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		 */
 		public function get_connection_status_code() {
 			$result = false;
-			$this->get_gateway_entry_points();
+			$this->perform_test_transaction();
 			$connection_no = 0;
 			foreach ( $this->connection_info[ self::CONN_INFO_GGEP ] as $connection_info ) {
 				$connection_no++;
@@ -1265,7 +1223,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Gets the status message of the connection with the Paymentsense entry points
+		 * Gets the status message of the connection by performing a test transaction
 		 *
 		 * @return array
 		 */
