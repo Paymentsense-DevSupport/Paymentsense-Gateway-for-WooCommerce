@@ -824,7 +824,7 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 		}
 
 		/**
-		 * Outputs message when the module is unavailable for use
+		 * Outputs a message
 		 *
 		 * @param string $message The message.
 		 */
@@ -1750,6 +1750,28 @@ if ( ! class_exists( 'Paymentsense_Base' ) ) {
 				$result[ $key ] = array_key_exists( $key, $max_lengths )
 					? substr( $value, 0, $max_lengths[ $key ] )
 					: $value;
+			}
+			return $result;
+		}
+
+		/**
+		 * Checks whether the current time is within the allowed payment method time-frame for a given order
+		 *
+		 * @param WC_Order $order WooCommerce order object.
+		 *
+		 * @return bool
+		 */
+		protected function within_payment_method_timeframe($order) {
+			$result = true;
+			$extended_payment_method_timeout = (int) $this->get_option('extended_payment_method_timeout');
+			if ($extended_payment_method_timeout > 0) {
+				try {
+					$order_date_modified = $order->get_date_modified();
+					$now = new DateTime('now');
+					$result = ($now->getTimestamp() - $order_date_modified->getTimestamp()) < $extended_payment_method_timeout;
+				} catch (Exception $exception) {
+					$result = false;
+				}
 			}
 			return $result;
 		}

@@ -78,20 +78,20 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 		 */
 		public function init_form_fields() {
 			$this->form_fields = array(
-				'enabled'                  => array(
+				'enabled' => array(
 					'title'   => __( 'Enable/Disable:', 'woocommerce-paymentsense' ),
 					'type'    => 'checkbox',
 					'label'   => __( 'Enable ', 'woocommerce-paymentsense' ) . $this->method_title,
 					'default' => 'yes',
 				),
 
-				'module_options'           => array(
+				'module_options' => array(
 					'title'       => __( 'Module Options', 'woocommerce-paymentsense' ),
 					'type'        => 'title',
 					'description' => __( 'The following options affect how the ', 'woocommerce-paymentsense' ) . $this->method_title . __( ' Module is displayed on the frontend.', 'woocommerce-paymentsense' ),
 				),
 
-				'title'                    => array(
+				'title' => array(
 					'title'       => __( 'Title:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This controls the title which the customer sees during checkout.', 'woocommerce-paymentsense' ),
@@ -99,7 +99,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'description'              => array(
+				'description' => array(
 					'title'       => __( 'Description:', 'woocommerce-paymentsense' ),
 					'type'        => 'textarea',
 					'description' => __( 'This controls the description which the customer sees during checkout.', 'woocommerce-paymentsense' ),
@@ -107,7 +107,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'order_prefix'             => array(
+				'order_prefix' => array(
 					'title'       => __( 'Order Prefix:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This is the order prefix that you will see in the MMS.', 'woocommerce-paymentsense' ),
@@ -115,13 +115,13 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'gateway_settings'         => array(
+				'gateway_settings' => array(
 					'title'       => __( 'Gateway Settings', 'woocommerce-paymentsense' ),
 					'type'        => 'title',
 					'description' => __( 'These are the gateway settings to allow you to connect with the Paymentsense gateway. (These are not the details used to login to the MMS)', 'woocommerce-paymentsense' ),
 				),
 
-				'gateway_merchant_id'      => array(
+				'gateway_merchant_id' => array(
 					'title'       => __( 'Gateway MerchantID:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This is the gateway MerchantID not used with the MMS login. The Format should match the following ABCDEF-1234567', 'woocommerce-paymentsense' ),
@@ -129,7 +129,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'gateway_password'         => array(
+				'gateway_password' => array(
 					'title'       => __( 'Gateway Password:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This is the gateway Password not used with the MMS login. The Password should use lower case and uppercase letters, and numbers only.', 'woocommerce-paymentsense' ),
@@ -151,7 +151,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					),
 				),
 
-				'amex_accepted'            => array(
+				'amex_accepted' => array(
 					'title'       => __( 'Accept American Express?', 'woocommerce-paymentsense' ),
 					'type'        => 'checkbox',
 					'description' => __( 'Tick only if you have an American Express MID associated with your Paymentsense gateway account.', 'woocommerce-paymentsense' ),
@@ -166,7 +166,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					'description' => __( 'Settings related to troubleshooting and diagnostics of the plugin.', 'woocommerce-paymentsense' ),
 				),
 
-				'extended_plugin_info'     => array(
+				'extended_plugin_info' => array(
 					'title'       => __( 'Allow extended information requests:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting "Yes".', 'woocommerce-paymentsense' ),

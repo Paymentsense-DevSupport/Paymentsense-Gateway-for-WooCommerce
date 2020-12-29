@@ -283,6 +283,15 @@ msgstr "Allow extended information requests:"
 msgid "Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting \"Yes\"."
 msgstr "Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting \"Yes\"."
 
+msgid "Payment method timeout:"
+msgstr "Payment method timeout:"
+
+msgid "Specifies the amount of time this payment method will be available since the order \"date_modified\" timestamp in seconds. Not setting a value or setting 0 is unlimited. Recommended Setting \"1800\"."
+msgstr "Specifies the amount of time this payment method will be available since the order \"date_modified\" timestamp in seconds. Not setting a value or setting 0 is unlimited. Recommended Setting \"1800\"."
+
+msgid "Sorry, the allowed time for paying this order has expired."
+msgstr "Sorry, the allowed time for paying this order has expired."
+
 msgid "Warning: The Paymentsense plugin cannot connect to the Paymentsense gateway. Please contact support providing the information below: <pre>%s</pre>"
 msgstr "Warning: The Paymentsense plugin cannot connect to the Paymentsense gateway. Please contact support providing the information below: <pre>%s</pre>"
 

@@ -100,6 +100,16 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 				'woocommerce_api_wc_' . $this->id,
 				array( $this, 'process_gateway_response' )
 			);
+			add_action(
+				'woocommerce_before_thankyou',
+				array( $this, 'process_before_thankyou' )
+			);
+			add_filter(
+				'woocommerce_thankyou_order_received_text',
+				array( $this, 'process_order_received_text' ),
+				10,
+				2
+			);
 		}
 
 		/**
@@ -109,20 +119,20 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		 */
 		public function init_form_fields() {
 			$this->form_fields = array(
-				'enabled'                              => array(
+				'enabled' => array(
 					'title'   => __( 'Enable/Disable:', 'woocommerce-paymentsense' ),
 					'type'    => 'checkbox',
 					'label'   => __( 'Enable ', 'woocommerce-paymentsense' ) . $this->method_title,
 					'default' => 'yes',
 				),
 
-				'module_options'                       => array(
+				'module_options' => array(
 					'title'       => __( 'Module Options', 'woocommerce-paymentsense' ),
 					'type'        => 'title',
 					'description' => __( 'The following options affect how the ', 'woocommerce-paymentsense' ) . $this->method_title . __( ' Module is displayed on the frontend.', 'woocommerce-paymentsense' ),
 				),
 
-				'title'                                => array(
+				'title' => array(
 					'title'       => __( 'Title:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This controls the title which the customer sees during checkout.', 'woocommerce-paymentsense' ),
@@ -130,7 +140,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'description'                          => array(
+				'description' => array(
 					'title'       => __( 'Description:', 'woocommerce-paymentsense' ),
 					'type'        => 'textarea',
 					'description' => __( 'This controls the description which the customer sees during checkout.', 'woocommerce-paymentsense' ),
@@ -138,7 +148,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'order_prefix'                         => array(
+				'order_prefix' => array(
 					'title'       => __( 'Order Prefix:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This is the order prefix that you will see in the MMS.', 'woocommerce-paymentsense' ),
@@ -146,13 +156,13 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'gateway_settings'                     => array(
+				'gateway_settings' => array(
 					'title'       => __( 'Gateway Settings', 'woocommerce-paymentsense' ),
 					'type'        => 'title',
 					'description' => __( 'These are the gateway settings to allow you to connect with the Paymentsense gateway. (These are not the details used to login to the MMS)', 'woocommerce-paymentsense' ),
 				),
 
-				'gateway_merchant_id'                  => array(
+				'gateway_merchant_id' => array(
 					'title'       => __( 'Gateway MerchantID:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This is the gateway MerchantID not used with the MMS login. The Format should match the following ABCDEF-1234567', 'woocommerce-paymentsense' ),
@@ -160,7 +170,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'gateway_password'                     => array(
+				'gateway_password' => array(
 					'title'       => __( 'Gateway Password:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This is the gateway Password not used with the MMS login. The Password should use lower case and uppercase letters, and numbers only.', 'woocommerce-paymentsense' ),
@@ -168,7 +178,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'gateway_presharedkey'                 => array(
+				'gateway_presharedkey' => array(
 					'title'       => __( 'Gateway PreSharedKey:', 'woocommerce-paymentsense' ),
 					'type'        => 'text',
 					'description' => __( 'This is located within the MMS under "Account Admin Settings" > "Account Settings".', 'woocommerce-paymentsense' ),
@@ -176,7 +186,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'desc_tip'    => true,
 				),
 
-				'gateway_hashmethod'                   => array(
+				'gateway_hashmethod' => array(
 					'title'       => __( 'Gateway Hash Method:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'This is the hash method set in MMS under "Account Admin" > "Account Settings". By default, this will be SHA1.', 'woocommerce-paymentsense' ),
@@ -192,7 +202,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'gateway_transaction_type'             => array(
+				'gateway_transaction_type' => array(
 					'title'       => __( 'Transaction Type:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'If you wish to obtain authorisation for the payment only, as you intend to manually collect the payment via the MMS, choose Pre-auth.', 'woocommerce-paymentsense' ),
@@ -206,7 +216,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'gateway_result_delivery'              => array(
+				'gateway_result_delivery' => array(
 					'title'       => __( 'Result Delivery Method:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'The Server Result Method determines how the transaction results are delivered back to the WooCommerce store.', 'woocommerce-paymentsense' ),
@@ -218,7 +228,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'amex_accepted'                        => array(
+				'amex_accepted' => array(
 					'title'       => __( 'Accept American Express?', 'woocommerce-paymentsense' ),
 					'type'        => 'checkbox',
 					'description' => __( 'Tick only if you have an American Express MID associated with your Paymentsense gateway account.', 'woocommerce-paymentsense' ),
@@ -233,7 +243,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					'description' => __( 'These options allow the customer to change the email address and phone number on the payment form.', 'woocommerce-paymentsense' ),
 				),
 
-				'email_address_editable'               => array(
+				'email_address_editable' => array(
 					'title'       => __( 'Email Address can be altered on payment form:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'This option allows the customer to change the email address that entered during checkout. By default the Paymentsense module will pass the customers email address that they entered during checkout.', 'woocommerce-paymentsense' ),
@@ -245,7 +255,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'phone_number_editable'                => array(
+				'phone_number_editable' => array(
 					'title'       => __( 'Phone Number can be altered on payment form:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'This option allows the customer to change the phone number that entered during checkout. By default the Paymentsense module will pass the customers phone number that they entered during checkout.', 'woocommerce-paymentsense' ),
@@ -257,13 +267,13 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'hosted_payment_form_mandatory_field'  => array(
+				'hosted_payment_form_mandatory_field' => array(
 					'title'       => __( 'Payment Form Mandatory Fields', 'woocommerce-paymentsense' ),
 					'type'        => 'title',
 					'description' => __( 'These options allow you to change what fields are mandatory for the customers to complete on the payment form. (The default settings are recommended by Paymentsense)', 'woocommerce-paymentsense' ),
 				),
 
-				'address1_mandatory'                   => array(
+				'address1_mandatory' => array(
 					'title'       => __( 'Address Line 1 Mandatory:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'Define the Address Line 1 as a Mandatory field on the Payment form. This is used for the Address Verification System (AVS) check on the customers card. Recommended Setting "Yes".', 'woocommerce-paymentsense' ),
@@ -275,7 +285,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'city_mandatory'                       => array(
+				'city_mandatory' => array(
 					'title'       => __( 'City Mandatory:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'Define the City as a Mandatory field on the Payment form.', 'woocommerce-paymentsense' ),
@@ -287,7 +297,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'state_mandatory'                      => array(
+				'state_mandatory' => array(
 					'title'       => __( 'State/County Mandatory:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'Define the State/County as a Mandatory field on the Payment form.', 'woocommerce-paymentsense' ),
@@ -299,7 +309,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'postcode_mandatory'                   => array(
+				'postcode_mandatory' => array(
 					'title'       => __( 'Post Code Mandatory:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'Define the Post Code as a Mandatory field on the Payment form. This is used for the Address Verification System (AVS) check on the customers card. Recommended Setting "Yes".', 'woocommerce-paymentsense' ),
@@ -311,7 +321,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'country_mandatory'                    => array(
+				'country_mandatory' => array(
 					'title'       => __( 'Country Mandatory:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'Define the Country as a Mandatory field on the Payment form.', 'woocommerce-paymentsense' ),
@@ -323,13 +333,13 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'troubleshooting_settings'             => array(
+				'troubleshooting_settings' => array(
 					'title'       => __( 'Troubleshooting Settings', 'woocommerce-paymentsense' ),
 					'type'        => 'title',
 					'description' => __( 'Settings related to troubleshooting and diagnostics of the plugin.', 'woocommerce-paymentsense' ),
 				),
 
-				'disable_comm_on_port_4430'            => array(
+				'disable_comm_on_port_4430' => array(
 					'title'       => __( 'Port 4430 is NOT open on my server (safe mode with refunds disabled):', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'In order to function normally the Paymentsense plugin performs outgoing connections to the Paymentsense gateway on port 4430 which is required to be open. In the case port 4430 on your server is closed you can still use the Paymentsense Hosted method with a limited functionality. Please note that by disabling the communication on port 4430 the online refund functionality will be disabled too. Recommended Setting "No". Please set to "Yes" only as a last resort when your server has port 4430 closed.', 'woocommerce-paymentsense' ),
@@ -341,7 +351,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 					),
 				),
 
-				'extended_plugin_info'                 => array(
+				'extended_plugin_info' => array(
 					'title'       => __( 'Allow extended information requests:', 'woocommerce-paymentsense' ),
 					'type'        => 'select',
 					'description' => __( 'Specifies whether requests for extended plugin information are allowed. Used for troubleshooting and diagnostics. Recommended Setting "Yes".', 'woocommerce-paymentsense' ),
@@ -351,6 +361,14 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 						'true'  => __( 'Yes', 'woocommerce-paymentsense' ),
 						'false' => __( 'No', 'woocommerce-paymentsense' ),
 					),
+				),
+
+				'extended_payment_method_timeout' => array(
+					'title'       => __( 'Payment method timeout:', 'woocommerce-paymentsense' ),
+					'type'        => 'text',
+					'description' => __( 'Specifies the amount of time this payment method will be available since the order "date_modified" timestamp in seconds. Not setting a value or setting 0 is unlimited. Recommended Setting "1800".', 'woocommerce-paymentsense' ),
+					'default'     => 1800,
+					'desc_tip'    => true,
 				),
 			);
 		}
@@ -392,31 +410,35 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 		 */
 		private function output_redirect_form( $order_id ) {
 			$order = new WC_Order( $order_id );
-
-			$order->update_status(
-				'pending',
-				__( 'Pending payment', 'woocommerce-paymentsense' )
-			);
-
-			$this->show_output(
-				'paymentsense-hosted-redirect.php',
-				array(
-					'title'                => __(
-						'Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment.',
-						'woocommerce-paymentsense'
-					),
-					'hpf_url'              => $this->get_payment_form_url(),
-					'hpf_arguments'        => $this->build_hpf_fields( $order ),
-					'hpf_submit_button'    => __(
-						'Click here if you are not redirected within 10 seconds...',
-						'woocommerce-paymentsense'
-					),
-					'hpf_redirect_message' => __(
-						'We are now redirecting you to Paymentsense to complete your payment.',
-						'woocommerce-paymentsense'
-					),
-				)
-			);
+			if ($this->within_payment_method_timeframe($order)) {
+				$order->update_status(
+					'pending',
+					__( 'Pending payment', 'woocommerce-paymentsense' )
+				);
+				$this->show_output(
+					'paymentsense-hosted-redirect.php',
+					array(
+						'title'                => __(
+							'Thank you - your order is now pending payment. You should be automatically redirected to Paymentsense to make payment.',
+							'woocommerce-paymentsense'
+						),
+						'hpf_url'              => $this->get_payment_form_url(),
+						'hpf_arguments'        => $this->build_hpf_fields( $order ),
+						'hpf_submit_button'    => __(
+							'Click here if you are not redirected within 10 seconds...',
+							'woocommerce-paymentsense'
+						),
+						'hpf_redirect_message' => __(
+							'We are now redirecting you to Paymentsense to complete your payment.',
+							'woocommerce-paymentsense'
+						),
+					)
+				);
+			} else {
+				$this->output_message(
+					__( 'Sorry, the allowed time for paying this order has expired.', 'woocommerce-paymentsense' )
+				);
+			}
 		}
 
 		/**
@@ -565,7 +587,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 							break;
 						case 'failed':
 							$order->update_status( 'failed', $auth_warning . __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message );
-							$error_msg = __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message . '<br />' .
+							$error_msg = __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message . '. ' .
 								__( 'Please check your card details and try again.', 'woocommerce-paymentsense' );
 							$this->set_success();
 							break;
@@ -719,37 +741,82 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 							$order->add_order_note( __( 'Payment processed successfully. ', 'woocommerce-paymentsense' ) . $message );
 						}
 
+						delete_post_meta( (int) $order->get_id(), 'ErrMessage' );
+
 						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
 						break;
 					case 'failed':
 						$order->update_status( 'failed', $auth_warning . __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message );
-						wc_add_notice(
-							__( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message . '<br />' .
-							__( 'Please check your card details and try again.', 'woocommerce-paymentsense' ),
-							'error'
+						update_post_meta(
+							(int) $order->get_id(),
+							'ErrMessage',
+							__( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message . '. ' .
+							__( 'Please check your card details and try again.', 'woocommerce-paymentsense' )
 						);
-						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
 						break;
 					case 'unsupported':
 					default:
 						$order->update_status( 'failed', __( 'Payment failed due to unknown or unsupported payment status. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.' );
-						wc_add_notice(
-							__( 'An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.',
-							'error'
+						update_post_meta(
+							(int) $order->get_id(),
+							'ErrMessage',
+							__( 'An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.'
 						);
-						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
 						break;
 				}
 				wp_safe_redirect( $location );
 			} catch ( Exception $exception ) {
 				$message = sprintf(
-					// Translators: %1$s - order number, %2$s - error message.
+				// Translators: %1$s - order number, %2$s - error message.
 					__( 'An error occurred while processing order#%1$s. Error message: %2$s', 'woocommerce-paymentsense' ),
 					$this->get_http_var( 'OrderID' ),
 					$exception->getMessage()
 				);
 				$this->output_message( $message );
 				exit;
+			}
+		}
+
+		/**
+		 * Removes the default "thank you" message when the payment is unsuccessful
+		 *
+		 * @param string   $message The message.
+		 * @param WC_Order $order   WooCommerce order object.
+		 *
+		 * @return string
+		 */
+		public function process_order_received_text( $message, $order ) {
+			$result = $message;
+			if ( ( $order->get_payment_method() === $this->id ) && get_post_meta( $order->get_id(), 'ErrMessage', true ) ) {
+				$result = '';
+			}
+			return $result;
+		}
+
+		/**
+		 * Inserts additional content when the payment is unsuccessful
+		 *
+		 * @param int $order_id WooCommerce OrderId.
+		 */
+		public function process_before_thankyou( $order_id ) {
+			$order = new WC_Order( $order_id );
+			if ( $order->get_payment_method() === $this->id ) {
+				$error_message = get_post_meta( $order->get_id(), 'ErrMessage', true );
+				if ( $error_message ) {
+					$this->show_output(
+						'paymentsense-hosted-unsuccessful-payment.php',
+						array(
+							'error_message'        => $error_message,
+							'checkout_payment_url' => $order->get_checkout_payment_url(),
+							'retry_payment_button' => __(
+								'Retry payment',
+								'woocommerce-paymentsense'
+							),
+						)
+					);
+				}
 			}
 		}
 
