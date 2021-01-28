@@ -1,10 +1,16 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.32
+Paymentsense Gateway for WooCommerce 3.0.33
+
+
+## [3.0.33] - 2021-01-28
+### Fixed
+- Inclusion of the missed file paymentsense-hosted-unsuccessful-payment.php to the WordPress SVN
 
 
 ## [3.0.32] - 2020-12-29
 ### Added
 - Payment method timeout (Paymentsense Hosted)
+
 
 ### Changed
 - Rework of the handling of the unsuccessful payments (Paymentsense Hosted)

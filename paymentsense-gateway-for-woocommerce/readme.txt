@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 5.6
-Stable tag: 3.0.32
+Stable tag: 3.0.33
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -117,11 +117,7 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.32] - 2020-12-29
-### Added
-- Payment method timeout (Paymentsense Hosted)
 
-### Changed
-- Rework of the handling of the unsuccessful payments (Paymentsense Hosted)
-- "Tested up to" tag to 5.6
-- "WC tested up to" tag to 4.8.0
+## [3.0.33] - 2021-01-28
+### Fixed
+- Inclusion of the missed file paymentsense-hosted-unsuccessful-payment.php to the WordPress SVN
