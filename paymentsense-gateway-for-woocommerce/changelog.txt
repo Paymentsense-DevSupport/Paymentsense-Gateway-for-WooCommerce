@@ -1,5 +1,10 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.34
+Paymentsense Gateway for WooCommerce 3.0.35
+
+
+## [3.0.35] - 2021-04-15
+### Changed
+- "WC tested up to" tag to 5.2.0
 
 
 ## [3.0.34] - 2021-03-31

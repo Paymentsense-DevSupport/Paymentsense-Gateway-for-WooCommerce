@@ -4,7 +4,7 @@ Contributors: paymentsense, alexanderkaltchev
 Tags: paymentsense, payments, checkout, credit card
 Requires at least: 4.4
 Tested up to: 5.7
-Stable tag: 3.0.34
+Stable tag: 3.0.35
 Requires PHP: 5.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -32,7 +32,7 @@ Direct on the other hand means that during the checkout process the customer ent
 
 * PHP version 5.6.0 or greater. An actively supported version is recommended.
 * WordPress 4.4 or greater (tested up to 5.7)
-* WooCommerce 3.7 or greater (tested up to 5.1.0)
+* WooCommerce 3.7 or greater (tested up to 5.2.0)
 * jQuery 1.12.4 or greater (part of WordPress core)
 * Open outbound port 4430 in order to use the Direct Method and for perform online refunds
 * PCI-certified server using SSL/TLS in order to use the Direct Method
@@ -117,7 +117,6 @@ The Paymentsense plugin can be installed by any of the following three ways:
 
 == Changelog ==
 
-## [3.0.34] - 2021-03-31
+## [3.0.35] - 2021-04-15
 ### Changed
-- "Tested up to" tag to 5.7
-- "WC tested up to" tag to 5.1.0
+- "WC tested up to" tag to 5.2.0
