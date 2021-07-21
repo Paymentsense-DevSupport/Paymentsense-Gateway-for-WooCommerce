@@ -4,16 +4,16 @@
  *
  * Plugin Name:          Paymentsense Gateway for WooCommerce
  * Description:          Extends WooCommerce by taking payments via Paymentsense. Provides integration with Paymentsense Hosted and Direct.
- * Version:              3.0.35
+ * Version:              3.0.36
  * Author:               Paymentsense
  * Author URI:           http://www.paymentsense.co.uk/
  * License:              GNU General Public License v3.0
  * License URI:          http://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:          woocommerce-paymentsense
  * Requires at least:    4.4
- * Tested up to:         5.7
+ * Tested up to:         5.8
  * WC requires at least: 3.7.0
- * WC tested up to:      5.2.0
+ * WC tested up to:      5.5.1
  *
  * @package WooCommerce_Paymentsense_Gateway
  * @wordpress-plugin
