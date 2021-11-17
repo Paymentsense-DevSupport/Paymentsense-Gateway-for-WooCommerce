@@ -634,14 +634,14 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 
 				switch ( $transaction_status ) {
 					case 'success':
-						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
+						$location = $order->get_checkout_order_received_url();
 						break;
 					case 'failed':
 					case 'duplicated':
 					case 'unsupported':
 					default:
 						wc_add_notice( $error_msg, 'error' );
-						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+						$location = $order->get_checkout_payment_url();
 						break;
 				}
 
@@ -686,7 +686,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 						__( 'It seems you already have paid for this order. In case of doubts, please contact us.', 'woocommerce-paymentsense' ),
 						'error'
 					);
-					$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+					$location = $order->get_checkout_payment_url();
 					wp_safe_redirect( $location );
 					return;
 				}
@@ -743,7 +743,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 
 						delete_post_meta( (int) $order->get_id(), 'ErrMessage' );
 
-						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
+						$location = $order->get_checkout_order_received_url();
 						break;
 					case 'failed':
 						$order->update_status( 'failed', $auth_warning . __( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message );
@@ -753,7 +753,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 							__( 'Payment failed due to: ', 'woocommerce-paymentsense' ) . $message . '. ' .
 							__( 'Please check your card details and try again.', 'woocommerce-paymentsense' )
 						);
-						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
+						$location = $order->get_checkout_order_received_url();
 						break;
 					case 'unsupported':
 					default:
@@ -763,7 +763,7 @@ if ( ! class_exists( 'WC_Paymentsense_Hosted' ) ) {
 							'ErrMessage',
 							__( 'An error occurred while processing your payment. Payment status is unknown. Please contact support. Payment Status: ', 'woocommerce-paymentsense' ) . $this->get_http_var( 'StatusCode' ) . '.'
 						);
-						$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_order_received_url() );
+						$location = $order->get_checkout_order_received_url();
 						break;
 				}
 				wp_safe_redirect( $location );

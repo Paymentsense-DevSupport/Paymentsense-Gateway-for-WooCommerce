@@ -70,7 +70,7 @@ msgstr "This is the hash method set in MMS under \"Account Admin\" > \"Account S
 msgid "Transaction Type:"
 msgstr "Transaction Type:"
 
-msgid "If you wish to obtain authorization for the payment only, as you intend to manually collect the payment via the MMS, choose Pre-auth."
+msgid "If you wish to obtain authorisation for the payment only, as you intend to manually collect the payment via the MMS, choose Pre-auth."
 msgstr "If you wish to obtain authorization for the payment only, as you intend to manually collect the payment via the MMS, choose Pre-auth."
 
 msgid "Sale"

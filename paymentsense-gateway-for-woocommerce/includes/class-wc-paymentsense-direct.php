@@ -583,7 +583,7 @@ if ( ! class_exists( 'WC_Paymentsense_Direct' ) ) {
 					__( 'It seems you already have paid for this order. In case of doubts, please contact us.', 'woocommerce-paymentsense' ),
 					'error'
 				);
-				$location = wc_get_endpoint_url( 'order-received', $order->get_id(), $order->get_checkout_payment_url( false ) );
+				$location = $order->get_checkout_payment_url();
 				wp_safe_redirect( $location );
 				return;
 			}

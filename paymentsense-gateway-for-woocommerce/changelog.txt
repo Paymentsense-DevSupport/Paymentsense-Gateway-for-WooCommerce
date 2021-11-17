@@ -1,5 +1,13 @@
 # Changelog
-Paymentsense Gateway for WooCommerce 3.0.36
+Paymentsense Gateway for WooCommerce 3.0.37
+
+
+## [3.0.37] - 2021-11-17
+### Removed
+- Duplicated "order-received" URL parameter when using URL rewriting (Paymentsense Hosted)
+
+### Changed
+- "WC tested up to" tag to 5.9.0
 
 
 ## [3.0.36] - 2021-07-21
